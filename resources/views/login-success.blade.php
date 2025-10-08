@@ -10,7 +10,7 @@
 <div class="container mt-5 text-center">
     <div class="card p-4 shadow">
         <h3>Selamat Datang, {{ $username }} 🎉</h3>
-        <p>Anda berhasil login!</p>
+        <p>yeay!, kamu berhasil login!</p>
     </div>
 </div>
 
