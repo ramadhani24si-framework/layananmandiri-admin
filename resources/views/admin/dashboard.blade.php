@@ -7,15 +7,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>Spica Admin</title>
   <!-- base:css -->
-  <link rel="stylesheet" href="vendors/mdi/css/materialdesignicons.min.css">
-  <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css">
+  <link rel="stylesheet" href="{{ asset('assets-admin/vendor/mdi/css/materialdesignicons.min.css') }}">
+ <link rel="stylesheet" href="{{ asset('assets-admin/vendor/css/vendor.bundle.base.css') }}">
   <!-- endinject -->
   <!-- plugin css for this page -->
   <!-- End plugin css for this page -->
   <!-- inject:css -->
-  <link rel="stylesheet" href="css/style.css">
+ <link rel="stylesheet" href="{{ asset('assets-admin/css/style.css') }}">
   <!-- endinject -->
-  <link rel="shortcut icon" href="images/favicon.png" />
+  <link rel="shortcut icon" href="{{ asset('assets-admin/img/favicon.png') }}" />
 </head>
 <body>
   <div class="container-scroller d-flex">
@@ -120,8 +120,8 @@
             <span class="mdi mdi-menu"></span>
           </button>
           <div class="navbar-brand-wrapper">
-            <a class="navbar-brand brand-logo" href="index.html"><img src="images/logo.svg" alt="logo"/></a>
-            <a class="navbar-brand brand-logo-mini" href="index.html"><img src="images/logo-mini.svg" alt="logo"/></a>
+            <a class="navbar-brand brand-logo" href="index.html"><img src="{{ asset('assets-admin/img/logo.svg') }}" alt="logo"/>
+            <a class="navbar-brand brand-logo-mini" href="index.html"><img src="{{ asset('assets-admin/img/logo-mini.svg') }}" alt="logo"/>
           </div>
           <h4 class="font-weight-bold mb-0 d-none d-md-block mt-1">Welcome back, Brandon Haynes</h4>
           <ul class="navbar-nav navbar-nav-right">
@@ -460,7 +460,7 @@
                       <tbody>
                         <tr>
                           <td class="py-1">
-                            <img src="images/faces/face1.jpg" alt="image"/>
+                            <img src="{{ asset('assets-admin/img/faces/face1.jpg') }}" alt="image"/>
                           </td>
                           <td>
                             Herman Beck
@@ -667,20 +667,20 @@
   <!-- container-scroller -->
 
   <!-- base:js -->
-  <script src="vendors/js/vendor.bundle.base.js"></script>
+ <script src="{{ asset('assets-admin/vendor/js/vendor.bundle.base.js') }}"></script>
   <!-- endinject -->
   <!-- Plugin js for this page-->
-  <script src="vendors/chart.js/Chart.min.js"></script>
+  <script src="{{ asset('assets-admin/vendor/chart.js/Chart.min.js') }}"></script>
   <!-- End plugin js for this page-->
   <!-- inject:js -->
-  <script src="js/off-canvas.js"></script>
-  <script src="js/hoverable-collapse.js"></script>
-  <script src="js/template.js"></script>
+  <script src="{{ asset('assets-admin/js/off-canvas.js') }}"></script>
+ <script src="{{ asset('assets-admin/js/hoverable-collapse.js') }}"></script>
+ <script src="{{ asset('assets-admin/js/template.js') }}"></script>
   <!-- endinject -->
   <!-- plugin js for this page -->
   <!-- End plugin js for this page -->
   <!-- Custom js for this page-->
-  <script src="js/dashboard.js"></script>
+  <script src="{{ asset('assets-admin/js/dashboard.js') }}"></script>
   <!-- End custom js for this page-->
 </body>
 
