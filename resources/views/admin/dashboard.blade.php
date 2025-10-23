@@ -33,6 +33,14 @@
             <div class="badge badge-info badge-pill">2</div>
           </a>
         </li>
+
+        <li class="nav-item">
+  <a class="nav-link" href="{{ route('warga') }}">
+    <i class="mdi mdi-account-multiple menu-icon"></i>
+    <span class="menu-title">Data Warga</span>
+  </a>
+</li>
+
         <li class="nav-item sidebar-category">
           <p>Components</p>
           <span></span>
