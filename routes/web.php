@@ -2,23 +2,28 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\WargaController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\FormPengaduanController;
-use App\Http\Controllers\PermohonanSuratController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\PengajuanController;
 
 
-Route::get('/', function () {
-    return view('welcome');
+// Halaman login & register
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+
+// Aksi login & register
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+
+// Logout
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Dashboard (hanya bisa diakses jika sudah login)
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 });
-//auth
-Route::get('/formpengaduan', [FormPengaduanController::class, 'index']);
-Route::get('/auth', [AuthController::class, 'index'])->name('auth.index');
-Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login');
-//admin
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-//warga
-Route::get('/warga', [WargaController::class, 'index'])->name('warga');
 
-//permohonansurat
-Route::resource('permohonansurat', PermohonanSuratController::class);
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+    Route::resource('pengajuan', PengajuanController::class);
+});
