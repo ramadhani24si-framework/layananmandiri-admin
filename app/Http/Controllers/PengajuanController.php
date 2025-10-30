@@ -10,12 +10,12 @@ class PengajuanController extends Controller
     public function index()
     {
         $pengajuans = Pengajuan::latest()->get();
-        return view('pengajuan.index', compact('pengajuans'));
+        return view('pages.pengajuan.index', compact('pengajuans'));
     }
 
     public function create()
     {
-        return view('pengajuan.create');
+        return view('pages.pengajuan.create');
     }
 
     public function store(Request $request)

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\WargaController;
 use App\Http\Controllers\PengajuanController;
 
 
@@ -27,3 +28,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
     Route::resource('pengajuan', PengajuanController::class);
 });
+
+
+
+Route::resource('user', UserController::class);
+Route::resource('warga', WargaController::class);
