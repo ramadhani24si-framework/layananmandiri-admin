@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+
     <style>
         :root {
             --primary-color: #4361ee;
@@ -16,11 +17,13 @@
             --sidebar-width: 260px;
         }
 
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
 
         body {
             min-height: 100vh;
@@ -29,6 +32,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
         }
+
 
         /* Navbar Style */
         .navbar {
@@ -40,6 +44,7 @@
             z-index: 1000;
         }
 
+
         .navbar-brand {
             font-weight: 700 !important;
             font-size: 1.4rem;
@@ -49,9 +54,11 @@
             transition: all 0.3s ease;
         }
 
+
         .navbar-brand:hover {
             transform: translateX(5px);
         }
+
 
         .navbar-brand::before {
             content: '📊';
@@ -59,15 +66,18 @@
             animation: pulse 2s infinite;
         }
 
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
 
+
         .wrapper {
             display: flex;
             flex: 1;
         }
+
 
         /* Sidebar Style */
         .sidebar {
@@ -82,6 +92,7 @@
             transition: all 0.3s ease;
         }
 
+
         .sidebar h5 {
             text-align: center;
             margin-bottom: 25px;
@@ -95,6 +106,7 @@
             gap: 10px;
         }
 
+
         .sidebar h5::before {
             content: '';
             width: 40px;
@@ -102,12 +114,14 @@
             background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
         }
 
+
         .sidebar h5::after {
             content: '';
             width: 40px;
             height: 3px;
             background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
         }
+
 
         .sidebar a {
             display: flex;
@@ -124,6 +138,7 @@
             overflow: hidden;
         }
 
+
         .sidebar a::before {
             content: '';
             position: absolute;
@@ -136,6 +151,7 @@
             transition: transform 0.3s ease;
         }
 
+
         .sidebar a:hover {
             background: rgba(255, 255, 255, 0.12);
             color: white;
@@ -143,9 +159,11 @@
             padding-left: 25px;
         }
 
+
         .sidebar a:hover::before {
             transform: scaleY(1);
         }
+
 
         .sidebar a.active {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
@@ -154,9 +172,11 @@
             font-weight: 600;
         }
 
+
         .sidebar a.active::before {
             transform: scaleY(1);
         }
+
 
         /* Content Area */
         .content {
@@ -167,6 +187,7 @@
             transition: all 0.3s ease;
         }
 
+
         /* User Info Styling */
         .navbar .text-white {
             font-weight: 500;
@@ -175,10 +196,12 @@
             gap: 8px;
         }
 
+
         .navbar .text-white::before {
             content: '👤';
             font-size: 1.2rem;
         }
+
 
         /* Button Styling */
         .btn-outline-light {
@@ -192,6 +215,7 @@
             letter-spacing: 0.5px;
         }
 
+
         .btn-outline-light:hover {
             background: rgba(255, 255, 255, 0.15);
             border-color: white;
@@ -199,23 +223,28 @@
             box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
         }
 
+
         /* Scrollbar Styling */
         .sidebar::-webkit-scrollbar {
             width: 8px;
         }
 
+
         .sidebar::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.05);
         }
+
 
         .sidebar::-webkit-scrollbar-thumb {
             background: linear-gradient(180deg, var(--primary-color), var(--accent-color));
             border-radius: 10px;
         }
 
+
         .sidebar::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(180deg, var(--accent-color), var(--primary-color));
         }
+
 
         /* Responsive - Sidebar collapses on small screens */
         @media (max-width: 768px) {
@@ -226,10 +255,12 @@
                 box-shadow: none;
             }
 
+
             .sidebar h5 {
                 font-size: 1rem;
                 margin-bottom: 15px;
             }
+
 
             .sidebar a {
                 margin: 3px 10px;
@@ -237,24 +268,29 @@
                 font-size: 0.95rem;
             }
 
+
             .content {
                 margin-left: 0;
                 padding: 20px 15px;
             }
 
+
             .navbar-brand {
                 font-size: 1.2rem;
             }
+
 
             .navbar .text-white::before {
                 content: '';
             }
         }
 
+
         /* Content Animation */
         .content > * {
             animation: fadeInUp 0.5s ease-out;
         }
+
 
         @keyframes fadeInUp {
             from {
@@ -267,6 +303,7 @@
             }
         }
 
+
         /* Enhanced Card Styles for Content */
         .content .card {
             border: none;
@@ -275,10 +312,12 @@
             transition: all 0.3s ease;
         }
 
+
         .content .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
         }
+
 
         /* Navbar Actions Group */
         .navbar > div > div {
@@ -287,10 +326,12 @@
             gap: 15px;
         }
 
+
         /* Guest Buttons */
         .navbar a.btn-outline-light {
             margin-left: 5px;
         }
+
 
         /* Smooth Transitions */
         * {
@@ -299,6 +340,7 @@
     </style>
 </head>
 <body>
+
 
     {{-- Navbar --}}
     <nav class="navbar navbar-dark bg-dark">
@@ -320,6 +362,7 @@
         </div>
     </nav>
 
+
     {{-- Wrapper untuk Sidebar + Konten --}}
     <div class="wrapper">
         {{-- Sidebar --}}
@@ -327,11 +370,13 @@
         <div class="sidebar">
             <h5>📋 Menu Navigasi</h5>
 
+
             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">🏠 Dashboard</a>
             <a href="{{ route('pengajuan.index') }}" class="{{ request()->routeIs('pengajuan.index') ? 'active' : '' }}">📄 Pengajuan Surat</a>
             <a href="{{ route('warga.index') }}" class="{{ request()->routeIs('warga.index') ? 'active' : '' }}">📄 Data Warga</a>
         </div>
         @endauth
+
 
         {{-- Konten Utama --}}
         <div class="content">
@@ -339,6 +384,12 @@
         </div>
     </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+
+
+
