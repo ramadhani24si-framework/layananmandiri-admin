@@ -6,7 +6,11 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WargaController;
 use App\Http\Controllers\PengajuanController;
+use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
+// Route::get('/',  function() {
+//     return view('dashboard');
+// });
 
 // Halaman login & register
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -26,7 +30,7 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+    Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
     Route::resource('pengajuan', PengajuanController::class);
 });
 
