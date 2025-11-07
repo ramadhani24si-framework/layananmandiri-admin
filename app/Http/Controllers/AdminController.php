@@ -3,20 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Warga;
+use App\Models\Pengajuan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
+
     public function index()
     {
-        // Hitung jumlah pengguna
         $userCount = User::count();
+        $wargaCount = Warga::count();
+        $pengajuanCount = Pengajuan::count();
+        $userName = auth()->check() ? auth()->user()->name : 'Guest';
 
-        // Ambil nama pengguna yang sedang login
-        $userName = auth()->user()->name;
-
-
-        return view('dashboard', compact('userCount', 'userName'));
+        return view('dashboard', compact('userCount', 'wargaCount', 'pengajuanCount', 'userName'));
     }
 }

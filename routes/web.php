@@ -8,9 +8,10 @@ use App\Http\Controllers\WargaController;
 use App\Http\Controllers\PengajuanController;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
-// Route::get('/',  function() {
-//     return view('dashboard');
+// Route::get('/', function () {
+//     return redirect()->route('dashboard');
 // });
+
 
 // Halaman login & register
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -24,17 +25,12 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Dashboard (hanya bisa diakses jika sudah login)
-Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
-});
+// Route::middleware('auth')->group(function () {
+//     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+// });
 
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
-    Route::resource('pengajuan', PengajuanController::class);
-});
-
-
+Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+Route::resource('pengajuan', PengajuanController::class);
 
 Route::resource('user', UserController::class);
 Route::resource('warga', WargaController::class);

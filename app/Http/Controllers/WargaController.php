@@ -15,7 +15,7 @@ class WargaController extends Controller
      */
     public function index()
     {
-       $data['warga'] = Warga::all();
+        $data['warga'] = Warga::all();
         return view('pages.warga.index', $data);
     }
 
@@ -73,10 +73,7 @@ class WargaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Warga $id)
-    {
-
-    }
+    public function show(Warga $id) {}
 
 
     /**
@@ -95,19 +92,19 @@ class WargaController extends Controller
     public function update(Request $request, string $id)
     {
         $warga_id = $id;
-    $warga = Warga::findOrFail($warga_id);
+        $warga = Warga::findOrFail($warga_id);
 
-    $warga->no_ktp = $request->no_ktp;
-    $warga->nama = $request->nama;
-    $warga->jenis_kelamin = $request->jenis_kelamin;
-    $warga->agama = $request->agama;
-    $warga->pekerjaan = $request->pekerjaan;
-    $warga->telp = $request->telp;
-    $warga->email = $request->email;
+        $warga->no_ktp = $request->no_ktp;
+        $warga->nama = $request->nama;
+        $warga->jenis_kelamin = $request->jenis_kelamin;
+        $warga->agama = $request->agama;
+        $warga->pekerjaan = $request->pekerjaan;
+        $warga->telp = $request->telp;
+        $warga->email = $request->email;
 
-    $warga->save();
+        $warga->save();
 
-    return redirect()->route('warga.index')->with('success', 'Perubahan Data Warga Berhasil!');
+        return redirect()->route('warga.index')->with('success', 'Perubahan Data Warga Berhasil!');
     }
 
 
@@ -123,8 +120,3 @@ class WargaController extends Controller
         return redirect()->route('warga.index')->with('success', 'Data berhasil dihapus');
     }
 }
-
-
-
-
-
