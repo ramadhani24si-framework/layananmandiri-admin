@@ -1,40 +1,79 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Pengajuan Surat')
 
 @section('content')
-<div class="container">
-    <h1 class="mb-4">✏️ Edit Pengajuan Surat</h1>
+<div class="container mt-4">
+    <h3 class="mb-4">Tambah Data Warga</h3>
 
-    <form action="{{ route('pengajuan.update', $pengajuan->pengajuan_id) }}" method="POST">
-        @csrf @method('PUT')
+    {{-- Pesan sukses --}}
+    @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    {{-- Pesan error validasi --}}
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    {{-- Form Tambah Data Warga --}}
+    <form action="{{ route('warga.store') }}" method="POST">
+        @csrf
 
         <div class="mb-3">
-            <label>Nama Pemohon</label>
-            <input type="text" name="nama_pemohon" class="form-control" value="{{ $pengajuan->nama_pemohon }}" required>
+            <label for="no_ktp" class="form-label">No KTP</label>
+            <input type="text" class="form-control" id="no_ktp" name="no_ktp"
+                   value="{{ old('no_ktp') }}" required>
         </div>
 
         <div class="mb-3">
-            <label>Jenis Surat</label>
-            <input type="text" name="jenis_surat" class="form-control" value="{{ $pengajuan->jenis_surat }}" required>
+            <label for="nama" class="form-label">Nama</label>
+            <input type="text" class="form-control" id="nama" name="nama"
+                   value="{{ old('nama') }}" required>
         </div>
 
         <div class="mb-3">
-            <label>Keterangan</label>
-            <textarea name="keterangan" class="form-control" rows="3">{{ $pengajuan->keterangan }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label>Status</label>
-            <select name="status" class="form-select">
-                <option value="Menunggu" {{ $pengajuan->status == 'Menunggu' ? 'selected' : '' }}>Menunggu</option>
-                <option value="Diproses" {{ $pengajuan->status == 'Diproses' ? 'selected' : '' }}>Diproses</option>
-                <option value="Selesai" {{ $pengajuan->status == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+            <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
+            <select class="form-select" id="jenis_kelamin" name="jenis_kelamin" required>
+                <option value="">-- Pilih Jenis Kelamin --</option>
+                <option value="L" {{ old('jenis_kelamin') == 'L' ? 'selected' : '' }}>Laki-laki</option>
+                <option value="P" {{ old('jenis_kelamin') == 'P' ? 'selected' : '' }}>Perempuan</option>
             </select>
         </div>
 
-        <button type="submit" class="btn btn-primary">Update</button>
-        <a href="{{ route('pengajuan.index') }}" class="btn btn-secondary">Kembali</a>
+        <div class="mb-3">
+            <label for="agama" class="form-label">Agama</label>
+            <input type="text" class="form-control" id="agama" name="agama"
+                   value="{{ old('agama') }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="pekerjaan" class="form-label">Pekerjaan</label>
+            <input type="text" class="form-control" id="pekerjaan" name="pekerjaan"
+                   value="{{ old('pekerjaan') }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="telp" class="form-label">Telepon</label>
+            <input type="text" class="form-control" id="telp" name="telp"
+                   value="{{ old('telp') }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email"
+                   value="{{ old('email') }}" required>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a href="{{ route('warga.index') }}" class="btn btn-secondary">Kembali</a>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
     </form>
 </div>
 @endsection

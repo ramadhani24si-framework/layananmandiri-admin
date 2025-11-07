@@ -21,5 +21,9 @@
         </div>
     </div>
 </div>
+{{-- ini link wa --}}
+<a href="https://wa.me/6281234567890" class="whatsapp-float" target="_blank" title="Hubungi kami di WhatsApp">
+    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp">
+</a>
 @endsection
 

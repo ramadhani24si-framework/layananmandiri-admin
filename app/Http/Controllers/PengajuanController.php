@@ -34,7 +34,7 @@ class PengajuanController extends Controller
 
     public function edit(Pengajuan $pengajuan)
     {
-        return view('pengajuan.edit', compact('pengajuan'));
+        return view('pages.pengajuan.edit', compact('pengajuan'));
     }
 
     public function update(Request $request, Pengajuan $pengajuan)
