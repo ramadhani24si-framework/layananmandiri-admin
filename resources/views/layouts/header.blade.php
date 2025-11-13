@@ -12,7 +12,7 @@
                 @endauth
                 @guest
                     <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm">Login</a>
-                    <a href="{{ route('register') }}" class="btn btn-outline-light btn-sm">anjay</a>
+                    <a href="{{ route('register') }}" class="btn btn-outline-light btn-sm">Logout</a>
                 @endguest
             </div>
         </div>

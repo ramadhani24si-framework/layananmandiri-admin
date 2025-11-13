@@ -1,43 +1,95 @@
 @extends('layouts.app')
 
+@section('title', 'Daftar User')
+
 @section('content')
-<main class="container my-5" id="user">
-    <div class="text-center mb-4">
-        <h2 class="fw-bold">Data User</h2>
-        <p class="text-muted">Berikut adalah daftar user yang telah terdaftar dalam sistem.</p>
+    <div class="container">
+        <h1 class="mb-4">👤 Daftar User</h1>
+
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
+        <a href="{{ route('user.create') }}" class="btn btn-primary mb-3">+ Tambah User</a>
+
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Tanggal Dibuat</th>
+                    <th style="width: 100px;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($dataUser as $user)
+                    <tr>
+                        <td>{{ $user->id }}</td>
+                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td>{{ $user->created_at->format('d/m/Y') }}</td>
+                        <td>
+                            <div class="d-flex gap-1 justify-content-center">
+                                <a href="{{ route('user.edit', $user->id) }}" class="btn btn-warning btn-action"
+                                    title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ route('user.destroy', $user->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-action"
+                                        onclick="return confirm('Yakin hapus data ini?')" title="Hapus">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center">Belum ada data user.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
-    {{-- Notifikasi sukses --}}
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+    <!-- Tambahkan Font Awesome untuk icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <div class="row">
-        @forelse ($dataUser as $item)
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm border-0 rounded-3">
-                    <div class="card-body text-center">
-                        <h5 class="card-title fw-bold">{{ $item->name }}</h5>
-                        <p class="card-text text-muted">{{ $item->email }}</p>
-                        <div class="d-flex justify-content-center gap-2 mt-3">
-                            <a href="{{ route('user.edit', $item->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                            <form action="{{ route('user.destroy', $item->id) }}" method="POST"
-                                  onsubmit="return confirm('Yakin ingin menghapus data ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @empty
-            <p class="text-center text-muted">Belum ada data user.</p>
-        @endforelse
-    </div>
+    <style>
+        .d-flex.gap-1 {
+            gap: 4px;
+        }
 
-    <div class="text-end mt-3">
-        <a href="{{ route('user.create') }}" class="btn btn-primary">+ Tambah User</a>
-    </div>
-</main>
+        /* Ganti .btn-sm dengan .btn-action yang lebih spesifik */
+        .btn-action {
+            padding: 6px 8px;
+            font-size: 12px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Atau lebih spesifik lagi - hanya tombol dalam tabel */
+        table .btn-sm {
+            padding: 6px 8px;
+            font-size: 12px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Pastikan kolom aksi memiliki lebar tetap dan konten di tengah */
+        table th:nth-child(5),
+        table td:nth-child(5) {
+            text-align: center;
+            vertical-align: middle;
+        }
+    </style>
 @endsection
