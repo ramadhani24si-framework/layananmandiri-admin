@@ -329,7 +329,7 @@
         }
 
 
-        /* Smooth Transitions */
+        /* Smooth Transisi */
         * {
             transition: background-color 0.2s ease, color 0.2s ease;
         }

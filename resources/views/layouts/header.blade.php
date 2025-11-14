@@ -17,4 +17,4 @@
             </div>
         </div>
     </nav>
-    {{-- Navbar --}}
+    {{-- Navbar tutup --}}

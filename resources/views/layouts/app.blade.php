@@ -24,7 +24,7 @@
         </div>
     </div>
 
- {{-- js --}}
+ {{-- js pembuka --}}
    @include('layouts.js')
     {{-- tutup js --}}
 </body>
