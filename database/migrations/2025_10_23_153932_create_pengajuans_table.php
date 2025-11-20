@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('pengajuans', function (Blueprint $table) {
             $table->id('pengajuan_id');
             $table->string('nama_pemohon');
-            $table->unsignedInteger('jenis_surat_id');
+            $table->unsignedInteger('jenis_id');
             $table->text('keterangan')->nullable();
             $table->enum('status', ['Menunggu', 'Diproses', 'Selesai'])->default('Menunggu');
             $table->timestamps();

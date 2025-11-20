@@ -13,7 +13,7 @@ class Pengajuan extends Model
 
     protected $fillable = [
         'nama_pemohon',
-        'jenis_surat_id',
+        'jenis_id',
         'keterangan',
         'status',
     ];
@@ -21,6 +21,6 @@ class Pengajuan extends Model
     // Tambahkan relasi ke JenisSurat
     public function jenisSurat()
     {
-        return $this->belongsTo(JenisSurat::class, 'jenis_surat_id', 'jenis_id');
+        return $this->belongsTo(JenisSurat::class, 'jenis_id', 'jenis_id');
     }
 }

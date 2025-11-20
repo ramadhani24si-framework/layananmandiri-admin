@@ -16,7 +16,7 @@ class CreatePengajuanDummy extends Seeder
         foreach (range(1, 50) as $index) {
             DB::table('pengajuans')->insert([  // DENGAN 's'
                 'nama_pemohon' => $faker->name,
-                'jenis_surat_id' => $faker->numberBetween(1, 7), // sesuaikan dengan jumlah jenis_surat
+                'jenis_id' => $faker->numberBetween(1, 7), // sesuaikan dengan jumlah jenis_surat
                 'keterangan' => $faker->optional(0.4)->sentence(8),
                 'status' => $faker->randomElement(['Menunggu', 'Diproses', 'Selesai']),
                 'created_at' => $faker->dateTimeBetween('-30 days', 'now'),
