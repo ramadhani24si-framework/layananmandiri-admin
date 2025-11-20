@@ -28,7 +28,7 @@
                     <tr>
                         <td>{{ $p->pengajuan_id }}</td>
                         <td>{{ $p->nama_pemohon }}</td>
-                        <td>{{ $p->jenis_surat }}</td>
+                        <td>{{ $p->jenisSurat->nama_jenis ?? '-' }}</td> <!-- UBAH INI -->
                         <td>{{ $p->keterangan }}</td>
                         <td>
                             <span
@@ -69,8 +69,6 @@
         .d-flex.gap-1 {
             gap: 4px;
         }
-
-        /* Ganti .btn-sm dengan .btn-action yang spesifik untuk tombol aksi tabel */
         .btn-action {
             padding: 6px 8px;
             font-size: 12px;
@@ -80,8 +78,6 @@
             align-items: center;
             justify-content: center;
         }
-
-        /* Pastikan kolom aksi memiliki lebar tetap dan konten di tengah */
         table th:nth-child(6),
         table td:nth-child(6) {
             text-align: center;
@@ -89,4 +85,3 @@
         }
     </style>
 @endsection
-{{--index--}}

@@ -1,11 +1,12 @@
 <?php
 
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\PengajuanController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\WargaController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\WargaController;
+use App\Http\Controllers\PengajuanController;
+use App\Http\Controllers\JenisSuratController;
 
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -25,4 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('pengajuan', PengajuanController::class);
     Route::resource('user', UserController::class);
     Route::resource('warga', WargaController::class);
+    Route::resource('jenis_surat', JenisSuratController::class);
 });
+
+
