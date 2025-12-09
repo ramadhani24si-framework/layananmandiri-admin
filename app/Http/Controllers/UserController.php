@@ -9,12 +9,40 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends Controller
 {
     /**
-     * Menampilkan daftar user.
+     * Menampilkan daftar user dengan filter urutan dan search.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data['dataUser'] = User::all();
-        return view ('pages.user.index', $data);
+        $query = User::query();
+
+        // SEARCH
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%$search%")
+                  ->orWhere('email', 'LIKE', "%$search%");
+            });
+        }
+
+        // FILTER URUTAN
+        if ($request->filled('sort')) {
+            if ($request->sort == 'name_asc') {
+                $query->orderBy('name', 'asc');
+            } elseif ($request->sort == 'name_desc') {
+                $query->orderBy('name', 'desc');
+            } elseif ($request->sort == 'latest') {
+                $query->orderBy('created_at', 'desc');
+            } elseif ($request->sort == 'oldest') {
+                $query->orderBy('created_at', 'asc');
+            }
+        } else {
+            // Default order
+            $query->orderBy('name', 'asc');
+        }
+
+        $data['dataUser'] = $query->paginate(10)->withQueryString();
+
+        return view('pages.user.index', $data);
     }
 
     /**
@@ -26,7 +54,7 @@ class UserController extends Controller
     }
 
     /**
-     * Menyimpan user baru ke database.
+     * Menyimpan user baru.
      */
     public function store(Request $request)
     {
@@ -36,7 +64,6 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
         ]);
 
-        // Simpan data dengan password di-hash
         User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
@@ -47,7 +74,7 @@ class UserController extends Controller
     }
 
     /**
-     * Menampilkan form edit data user.
+     * Menampilkan form edit user.
      */
     public function edit(string $id)
     {
@@ -56,7 +83,7 @@ class UserController extends Controller
     }
 
     /**
-     * Memperbarui data user di database.
+     * Update user.
      */
     public function update(Request $request, string $id)
     {
@@ -81,7 +108,7 @@ class UserController extends Controller
     }
 
     /**
-     * Menghapus data user.
+     * Hapus user.
      */
     public function destroy(string $id)
     {

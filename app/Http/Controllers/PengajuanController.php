@@ -3,21 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pengajuan;
-use App\Models\JenisSurat; // TAMBAH INI
+use App\Models\JenisSurat;
 use Illuminate\Http\Request;
 
 class PengajuanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Ambil data dengan relasi jenisSurat
-        $pengajuans = Pengajuan::with('jenisSurat')->latest()->get();
+        // Kolom filter
+        $filterableColumns = ['status', 'jenis_id'];
+
+        // Kolom search
+        $searchableColumns = ['nama_pemohon', 'keterangan'];
+
+        $pengajuans = Pengajuan::with('jenisSurat')
+                ->filter($request, $filterableColumns)
+                ->search($request, $searchableColumns)
+                ->latest()
+                ->paginate(10)
+                ->withQueryString();
+
         return view('pages.pengajuan.index', compact('pengajuans'));
     }
 
     public function create()
     {
-        // Ambil semua jenis surat untuk dropdown
         $jenisSurats = JenisSurat::all();
         return view('pages.pengajuan.create', compact('jenisSurats'));
     }
@@ -26,7 +36,7 @@ class PengajuanController extends Controller
     {
         $request->validate([
             'nama_pemohon' => 'required|string|max:255',
-            'jenis_surat_id' => 'required|exists:jenis_surat,jenis_id', // UBAH VALIDASI
+            'jenis_id' => 'required|exists:jenis_surat,jenis_id',
             'keterangan' => 'nullable|string',
             'status' => 'required|in:Menunggu,Diproses,Selesai',
         ]);
@@ -38,7 +48,6 @@ class PengajuanController extends Controller
 
     public function edit(Pengajuan $pengajuan)
     {
-        // Load relasi dan ambil jenis surat
         $pengajuan->load('jenisSurat');
         $jenisSurats = JenisSurat::all();
         return view('pages.pengajuan.edit', compact('pengajuan', 'jenisSurats'));
@@ -48,7 +57,7 @@ class PengajuanController extends Controller
     {
         $request->validate([
             'nama_pemohon' => 'required|string|max:255',
-            'jenis_surat_id' => 'required|exists:jenis_surat,jenis_id', // UBAH VALIDASI
+            'jenis_id' => 'required|exists:jenis_surat,jenis_id',
             'keterangan' => 'nullable|string',
             'status' => 'required|in:Menunggu,Diproses,Selesai',
         ]);

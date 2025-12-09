@@ -13,7 +13,7 @@ class CreatePengajuanDummy extends Seeder
     {
         $faker = Faker::create('id_ID');
 
-        foreach (range(1, 50) as $index) {
+        foreach (range(1, 100) as $index) {
             DB::table('pengajuans')->insert([  // DENGAN 's'
                 'nama_pemohon' => $faker->name,
                 'jenis_id' => $faker->numberBetween(1, 7), // sesuaikan dengan jumlah jenis_surat

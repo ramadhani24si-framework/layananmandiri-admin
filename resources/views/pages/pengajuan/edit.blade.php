@@ -6,7 +6,6 @@
     <div class="container mt-4">
         <h3 class="mb-4">✏️ Edit Pengajuan Surat</h3>
 
-        {{-- Pesan sukses atau error --}}
         @if (session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
@@ -21,7 +20,6 @@
             </div>
         @endif
 
-        {{-- Form Edit Pengajuan --}}
         <form action="{{ route('pengajuan.update', $pengajuan) }}" method="POST">
             @csrf
             @method('PUT')
@@ -35,10 +33,10 @@
             {{-- Jenis Surat --}}
             <div class="mb-3">
                 <label class="form-label">Jenis Surat</label>
-                <select name="jenis_surat_id" class="form-select" required> {{-- UBAH form-control MENJADI form-select --}}
+                <select name="jenis_id" class="form-select" required>
                     @foreach ($jenisSurats as $jenis)
                         <option value="{{ $jenis->jenis_id }}"
-                            {{ isset($pengajuan) && $pengajuan->jenis_surat_id == $jenis->jenis_id ? 'selected' : '' }}>
+                            {{ $pengajuan->jenis_id == $jenis->jenis_id ? 'selected' : '' }}>
                             {{ $jenis->nama_jenis }}
                         </option>
                     @endforeach
@@ -47,21 +45,16 @@
 
             <div class="mb-3">
                 <label for="keterangan" class="form-label">Keterangan</label>
-                <textarea name="keterangan" id="keterangan" class="form-control" rows="4"
-                    placeholder="Masukkan keterangan tambahan...">{{ old('keterangan', $pengajuan->keterangan) }}</textarea>
+                <textarea name="keterangan" id="keterangan" class="form-control" rows="4">{{ old('keterangan', $pengajuan->keterangan) }}</textarea>
             </div>
 
             <div class="mb-3">
                 <label for="status" class="form-label">Status Pengajuan</label>
                 <select name="status" id="status" class="form-select" required>
-                    <option value="Menunggu" {{ old('status', $pengajuan->status) == 'Menunggu' ? 'selected' : '' }}>
-                        Menunggu</option>
-                    <option value="Diproses" {{ old('status', $pengajuan->status) == 'Diproses' ? 'selected' : '' }}>
-                        Diproses</option>
-                    <option value="Selesai" {{ old('status', $pengajuan->status) == 'Selesai' ? 'selected' : '' }}>Selesai
-                    </option>
-                    <option value="Ditolak" {{ old('status', $pengajuan->status) == 'Ditolak' ? 'selected' : '' }}>Ditolak
-                    </option>
+                    <option value="Menunggu" {{ $pengajuan->status == 'Menunggu' ? 'selected' : '' }}>Menunggu</option>
+                    <option value="Diproses" {{ $pengajuan->status == 'Diproses' ? 'selected' : '' }}>Diproses</option>
+                    <option value="Selesai" {{ $pengajuan->status == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+                    <option value="Ditolak" {{ $pengajuan->status == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
                 </select>
             </div>
 
@@ -70,4 +63,3 @@
         </form>
     </div>
 @endsection
-{{-- edit --}}

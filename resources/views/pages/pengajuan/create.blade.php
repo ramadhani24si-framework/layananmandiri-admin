@@ -16,10 +16,9 @@
             {{-- Jenis Surat --}}
             <div class="mb-3">
                 <label class="form-label">Jenis Surat</label>
-                <select name="jenis_surat_id" class="form-select" required> {{-- UBAH form-control MENJADI form-select --}}
+                <select name="jenis_id" class="form-select" required>
                     @foreach ($jenisSurats as $jenis)
-                        <option value="{{ $jenis->jenis_id }}"
-                            {{ isset($pengajuan) && $pengajuan->jenis_surat_id == $jenis->jenis_id ? 'selected' : '' }}>
+                        <option value="{{ $jenis->jenis_id }}">
                             {{ $jenis->nama_jenis }}
                         </option>
                     @endforeach
@@ -45,4 +44,3 @@
         </form>
     </div>
 @endsection
-{{-- create --}}

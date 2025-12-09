@@ -1,24 +1,30 @@
 <?php
 
-
 namespace App\Http\Controllers;
-
 
 use Illuminate\Http\Request;
 use App\Models\Warga;
-
 
 class WargaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data['warga'] = Warga::all();
+        // Kolom filter
+        $filterable = ['jenis_kelamin', 'agama'];
+
+        // Kolom search
+        $searchable = ['nama', 'no_ktp', 'pekerjaan', 'telp', 'email'];
+
+        $data['warga'] = Warga::filter($request, $filterable)
+                              ->search($request, $searchable)
+                              ->paginate(10)
+                              ->withQueryString();
+
         return view('pages.warga.index', $data);
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -28,9 +34,8 @@ class WargaController extends Controller
         return view('pages.warga.create');
     }
 
-
     /**
-     * Store a newly created resource in storage.
+     * Store the newly created resource.
      */
     public function store(Request $request)
     {
@@ -42,39 +47,12 @@ class WargaController extends Controller
             'pekerjaan' => 'required|string|max:255|min:2',
             'telp' => 'required|string|min:10|max:15',
             'email' => 'nullable|email|max:255'
-        ], [
-            // Pesan error dalam bahasa Indonesia
-            'no_ktp.required' => 'Nomor KTP wajib diisi',
-            'no_ktp.size' => 'Nomor KTP harus 16 digit',
-            'no_ktp.unique' => 'Nomor KTP sudah terdaftar',
-            'nama.required' => 'Nama lengkap wajib diisi',
-            'nama.min' => 'Nama lengkap minimal 3 karakter',
-            'jenis_kelamin.required' => 'Jenis kelamin wajib dipilih',
-            'jenis_kelamin.in' => 'Jenis kelamin harus Laki-laki atau Perempuan',
-            'agama.required' => 'Agama wajib dipilih',
-            'agama.in' => 'Agama harus dipilih dari pilihan yang tersedia',
-            'pekerjaan.required' => 'Pekerjaan wajib diisi',
-            'pekerjaan.min' => 'Pekerjaan minimal 2 karakter',
-            'telp.required' => 'Nomor telepon wajib diisi',
-            'telp.min' => 'Nomor telepon minimal 10 digit',
-            'telp.max' => 'Nomor telepon maksimal 15 digit',
-            'email.email' => 'Format email tidak valid'
         ]);
-
 
         Warga::create($validated);
 
-
-        return redirect()->route('warga.index')
-            ->with('success', 'Data warga berhasil ditambahkan!');
+        return redirect()->route('warga.index')->with('success', 'Data warga berhasil ditambahkan!');
     }
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Warga $id) {}
-
 
     /**
      * Show the form for editing the specified resource.
@@ -85,30 +63,17 @@ class WargaController extends Controller
         return view('pages.warga.edit', $data);
     }
 
-
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        $warga_id = $id;
-        $warga = Warga::findOrFail($warga_id);
+        $warga = Warga::findOrFail($id);
 
-        $warga->no_ktp = $request->no_ktp;
-        $warga->nama = $request->nama;
-        $warga->jenis_kelamin = $request->jenis_kelamin;
-        $warga->agama = $request->agama;
-        $warga->pekerjaan = $request->pekerjaan;
-        $warga->telp = $request->telp;
-        $warga->email = $request->email;
-
-        $warga->save();
+        $warga->update($request->all());
 
         return redirect()->route('warga.index')->with('success', 'Perubahan Data Warga Berhasil!');
     }
-
-
-
 
     /**
      * Remove the specified resource from storage.
@@ -117,6 +82,7 @@ class WargaController extends Controller
     {
         $warga = Warga::findOrFail($id);
         $warga->delete();
+
         return redirect()->route('warga.index')->with('success', 'Data berhasil dihapus');
     }
 }
