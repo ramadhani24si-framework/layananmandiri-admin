@@ -23,6 +23,32 @@ class Warga extends Model
         'email',
     ];
 
+    // 🔥 ACCESSOR UNTUK JENIS KELAMIN (Text)
+    public function getJenisKelaminTextAttribute()
+    {
+        return $this->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan';
+    }
+
+    // 🔥 ACCESSOR UNTUK JENIS KELAMIN FULL (Migration: ['Laki-laki', 'Perempuan'])
+    public function getJenisKelaminFullAttribute()
+    {
+        return $this->jenis_kelamin == 'Laki-laki' ? 'Laki-laki' :
+               ($this->jenis_kelamin == 'Perempuan' ? 'Perempuan' :
+               ($this->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan'));
+    }
+
+    // 🔥 RELASI KE PENGAJUAN
+    public function pengajuans()
+    {
+        return $this->hasMany(Pengajuan::class, 'warga_id', 'warga_id');
+    }
+
+    // 🔥 CEK APAKAH WARGA MEMILIKI PENGAJUAN
+    public function getMemilikiPengajuanAttribute()
+    {
+        return $this->pengajuans()->count() > 0;
+    }
+
     /* -----------------------
        FILTER
     ------------------------*/
@@ -50,5 +76,15 @@ class Warga extends Model
             });
         }
         return $query;
+    }
+
+    // 🔥 SCOPE UNTUK SEARCH SIMPLE
+    public function scopeSearchSimple($query, $keyword)
+    {
+        return $query->where('no_ktp', 'like', '%' . $keyword . '%')
+                     ->orWhere('nama', 'like', '%' . $keyword . '%')
+                     ->orWhere('telp', 'like', '%' . $keyword . '%')
+                     ->orWhere('email', 'like', '%' . $keyword . '%')
+                     ->orWhere('pekerjaan', 'like', '%' . $keyword . '%');
     }
 }

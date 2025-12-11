@@ -1,72 +1,115 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\WargaController;
-use App\Http\Controllers\PengajuanController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BerkasPersyaratanController;
 use App\Http\Controllers\JenisSuratController;
+use App\Http\Controllers\PengajuanController;
+use App\Http\Controllers\RiwayatStatusSuratController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WargaController;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\File;
 
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// ✏️ UBAH INI: Route "/" langsung ke login
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// ✅ GANTI 'auth' MENJADI 'check.login'
 // Protected Routes (Harus Login)
-Route::middleware('auth')->group(function () {
+Route::middleware('check.login')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+
+    // ✅ PENGAJUAN ROUTES
     Route::resource('pengajuan', PengajuanController::class);
-    Route::resource('user', UserController::class);
-    Route::resource('warga', WargaController::class);
-    Route::resource('jenis_surat', JenisSuratController::class);
+
+    // Tambahkan route ini di dalam group auth (setelah resource)
+    Route::delete('/jenis_surat/{jenis_id}/media/{media_id}', [JenisSuratController::class, 'destroyMedia'])
+        ->name('jenis_surat.destroyMedia');
+
+    // routes/web.php - Tambahkan di dalam group auth
+    Route::delete('/pengajuan/{pengajuan_id}/lampiran/{media_id}', [PengajuanController::class, 'destroyLampiran'])
+        ->name('pengajuan.destroyLampiran');
+
+    // ✅ TAMBAHKAN INI: Route untuk update status
+    Route::post('/pengajuan/{id}/update-status', [PengajuanController::class, 'updateStatus'])
+        ->name('pengajuan.update-status');
+
+    // ==================== ROUTES UNTUK ADMIN & SUPER ADMIN ====================
+    Route::middleware(['check.role:admin,super_admin'])->group(function () {
+        Route::resource('user', UserController::class);
+        Route::resource('warga', WargaController::class);
+        Route::resource('jenis_surat', JenisSuratController::class);
+
+        // BERKAS PERSYARATAN CREATE/EDIT/DELETE hanya untuk admin
+        Route::get('/berkas_persyaratan/create', [BerkasPersyaratanController::class, 'create'])->name('berkas_persyaratan.create');
+        Route::post('/berkas_persyaratan', [BerkasPersyaratanController::class, 'store'])->name('berkas_persyaratan.store');
+        Route::get('/berkas_persyaratan/{id}/edit', [BerkasPersyaratanController::class, 'edit'])->name('berkas_persyaratan.edit');
+        Route::put('/berkas_persyaratan/{id}', [BerkasPersyaratanController::class, 'update'])->name('berkas_persyaratan.update');
+        Route::delete('/berkas_persyaratan/{id}', [BerkasPersyaratanController::class, 'destroy'])->name('berkas_persyaratan.destroy');
+        Route::delete('/berkas_persyaratan/{berkas_id}/media/{media_id}', [BerkasPersyaratanController::class, 'destroyMedia'])
+            ->name('berkas_persyaratan.destroyMedia');
+        Route::get('/berkas_persyaratan/{berkas_id}/media/{media_id}/download', [BerkasPersyaratanController::class, 'downloadMedia'])
+            ->name('berkas_persyaratan.downloadMedia');
+
+        // RIWAYAT STATUS CREATE/EDIT/DELETE hanya untuk admin
+        Route::get('/riwayat-status-surat/create', [RiwayatStatusSuratController::class, 'create'])
+            ->name('riwayat_status_surat.create');
+        Route::post('/riwayat-status-surat', [RiwayatStatusSuratController::class, 'store'])
+            ->name('riwayat_status_surat.store');
+        Route::get('/riwayat-status-surat/{id}/edit', [RiwayatStatusSuratController::class, 'edit'])
+            ->name('riwayat_status_surat.edit');
+        Route::put('/riwayat-status-surat/{id}', [RiwayatStatusSuratController::class, 'update'])
+            ->name('riwayat_status_surat.update');
+        Route::delete('/riwayat-status-surat/{id}', [RiwayatStatusSuratController::class, 'destroy'])
+            ->name('riwayat_status_surat.destroy');
+        Route::post('/riwayat-status-surat/create-from-pengajuan/{pengajuan_id}', [RiwayatStatusSuratController::class, 'createFromPengajuan'])
+            ->name('riwayat_status_surat.create-from-pengajuan');
+    });
+
+    // ==================== ROUTES UNTUK SUPER ADMIN SAJA ====================
+    Route::middleware(['check.role:super_admin'])->group(function () {
+        // Pengaturan sistem (hanya super admin)
+        Route::get('/admin/settings', function () {
+            return view('admin.settings');
+        })->name('admin.settings');
+    });
+
+    // ==================== ROUTES UNTUK SEMUA USER ====================
+    // BERKAS PERSYARATAN (lihat saja untuk semua user)
+    Route::get('/berkas_persyaratan', [BerkasPersyaratanController::class, 'index'])->name('berkas_persyaratan.index');
+    Route::get('/berkas_persyaratan/{id}', [BerkasPersyaratanController::class, 'show'])->name('berkas_persyaratan.show');
+
+    // RIWAYAT STATUS (lihat saja untuk semua user)
+    Route::get('/riwayat-status-surat', [RiwayatStatusSuratController::class, 'index'])
+        ->name('riwayat_status_surat.index');
+    Route::get('/riwayat-status-surat/{id}', [RiwayatStatusSuratController::class, 'show'])
+        ->name('riwayat_status_surat.show');
+
+    // AJAX Routes untuk semua user
+    Route::get('/riwayat-status-surat/by-pengajuan/{pengajuan_id}', [RiwayatStatusSuratController::class, 'getByPengajuan'])
+        ->name('riwayat_status_surat.by-pengajuan');
 });
 
-// ==================== BERKAS PERSYARATAN ROUTES ====================
-Route::get('/berkas-persyaratan', [BerkasPersyaratanController::class, 'index'])->name('berkas-persyaratan.index');
-Route::get('/berkas-persyaratan/create', [BerkasPersyaratanController::class, 'create'])->name('berkas-persyaratan.create');
-Route::post('/berkas-persyaratan', [BerkasPersyaratanController::class, 'store'])->name('berkas-persyaratan.store');
-Route::get('/berkas-persyaratan/{berkas_persyaratan}', [BerkasPersyaratanController::class, 'show'])->name('berkas-persyaratan.show');
-Route::get('/berkas-persyaratan/{berkas_persyaratan}/edit', [BerkasPersyaratanController::class, 'edit'])->name('berkas-persyaratan.edit');
-Route::put('/berkas-persyaratan/{berkas_persyaratan}', [BerkasPersyaratanController::class, 'update'])->name('berkas-persyaratan.update');
-Route::delete('/berkas-persyaratan/{berkas_persyaratan}', [BerkasPersyaratanController::class, 'destroy'])->name('berkas-persyaratan.destroy');
+// Route untuk development (local storage access)
+if (app()->environment('local')) {
+    Route::get('/storage/app/public/media/jenis_surat/{filename}', function ($filename) {
+        $path = storage_path('app/public/media/jenis_surat/' . $filename);
 
-// ✅ ROUTE UNTUK HAPUS FILE MEDIA
-Route::delete('/berkas-persyaratan/{berkas_id}/media/{media_id}',
-    [BerkasPersyaratanController::class, 'destroyMedia'])->name('berkas-persyaratan.media.destroy');
+        if (!File::exists($path)) {
+            abort(404);
+        }
 
-// ✅ ROUTE UNTUK UPDATE STATUS
-Route::post('/berkas-persyaratan/{berkas_persyaratan}/status',
-    [BerkasPersyaratanController::class, 'updateStatus'])->name('berkas-persyaratan.status.update');
+        return response()->file($path);
+    });
+}
 
-// ✅ ROUTE GET BERKAS BY PENGAJUAN (AJAX)
-Route::get('/pengajuan/{pengajuan_id}/berkas',
-    [BerkasPersyaratanController::class, 'getByPengajuan'])->name('pengajuan.berkas.get');
-
-    // ==================== RIWAYAT STATUS SURAT ROUTES ====================
-Route::get('/riwayat-status-surat', [RiwayatStatusSuratController::class, 'index'])->name('riwayat-status-surat.index');
-Route::get('/riwayat-status-surat/create', [RiwayatStatusSuratController::class, 'create'])->name('riwayat-status-surat.create');
-Route::post('/riwayat-status-surat', [RiwayatStatusSuratController::class, 'store'])->name('riwayat-status-surat.store');
-Route::get('/riwayat-status-surat/{riwayat_status_surat}', [RiwayatStatusSuratController::class, 'show'])->name('riwayat-status-surat.show');
-Route::get('/riwayat-status-surat/{riwayat_status_surat}/edit', [RiwayatStatusSuratController::class, 'edit'])->name('riwayat-status-surat.edit');
-Route::put('/riwayat-status-surat/{riwayat_status_surat}', [RiwayatStatusSuratController::class, 'update'])->name('riwayat-status-surat.update');
-Route::delete('/riwayat-status-surat/{riwayat_status_surat}', [RiwayatStatusSuratController::class, 'destroy'])->name('riwayat-status-surat.destroy');
-
-// ✅ ROUTE UNTUK HAPUS FILE MEDIA
-Route::delete('/riwayat-status-surat/{riwayat_id}/media/{media_id}',
-    [RiwayatStatusSuratController::class, 'destroyMedia'])->name('riwayat-status-surat.media.destroy');
-
-// ✅ ROUTE KHUSUS UNTUK PENGAJUAN (UBAH: permohonan -> pengajuan)
-Route::post('/pengajuan/{pengajuan_id}/riwayat',  // DIUBAH
-    [RiwayatStatusSuratController::class, 'createFromPengajuan'])->name('pengajuan.riwayat.store'); // DIUBAH
-
-// ✅ ROUTE GET RIWAYAT BY PENGAJUAN (AJAX) - UBAH
-Route::get('/pengajuan/{pengajuan_id}/riwayat',  // DIUBAH
-    [RiwayatStatusSuratController::class, 'getByPengajuan'])->name('pengajuan.riwayat.get'); // DIUBAH
+// JENIS SURAT INDEX (bisa diakses tanpa login atau dengan login)
+Route::get('/jenis_surat', [JenisSuratController::class, 'index'])->name('jenis_surat.index');

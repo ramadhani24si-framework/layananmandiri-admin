@@ -12,12 +12,20 @@ class AuthController extends Controller
     // Show Login Form
     public function showLogin()
     {
+        // Jika sudah login, redirect ke dashboard (SEMUA ROLE KE DASHBOARD)
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
         return view('pages.auth.login');
     }
 
     // Show Register Form
     public function showRegister()
     {
+        // Jika sudah login, redirect ke dashboard (SEMUA ROLE KE DASHBOARD)
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
         return view('pages.auth.register');
     }
 
@@ -50,7 +58,7 @@ class AuthController extends Controller
         // Login user
         Auth::login($user);
 
-        // Redirect ke dashboard
+        // Redirect semua user ke dashboard
         return redirect()->route('dashboard')->with('success', 'Login berhasil! Selamat datang ' . $user->name);
     }
 
@@ -64,11 +72,12 @@ class AuthController extends Controller
             'password' => 'required|min:6|confirmed',
         ]);
 
-        // Create user
+        // Create user dengan role default 'user'
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'user', // Default role
         ]);
 
         // Login user setelah register

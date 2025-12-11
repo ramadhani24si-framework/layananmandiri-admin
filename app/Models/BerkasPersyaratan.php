@@ -9,148 +9,65 @@ class BerkasPersyaratan extends Model
 {
     use HasFactory;
 
-    // Nama tabel
     protected $table = 'berkas_persyaratan';
-
-    // Primary key
     protected $primaryKey = 'berkas_id';
 
-    // Timestamps
+    public $incrementing = true;
     public $timestamps = true;
 
-    // Kolom yang bisa diisi (UBAH KE pengajuan_id)
     protected $fillable = [
-        'pengajuan_id', // DIUBAH
+        'permohonan_id',
         'nama_berkas',
-        'valid'
+        'valid',
     ];
 
-    // Casting tipe data
-    protected $casts = [
-        'valid' => 'string'
-    ];
-
-    /**
-     * RELASI KE PENGAJUANS (BUKAN PERMOHONAN SURAT)
-     */
-    public function pengajuan() // NAMA METHOD DIUBAH
+    // 🔥 RELASI KE PENGAJUAN
+    public function pengajuan()
     {
-        return $this->belongsTo(Pengajuan::class, 'pengajuan_id', 'pengajuan_id');
+        return $this->belongsTo(Pengajuan::class, 'permohonan_id', 'permohonan_id');
     }
 
-    /**
-     * AMBIL SEMUA FILE MEDIA UNTUK BERKAS INI
-     * Sesuai instruksi: ref_table = 'berkas_persyaratan', ref_id = berkas_id
-     */
-    public function mediaFiles()
+    // 🔥 RELASI KE MEDIA (MULTIPLE FILES)
+    public function media()
     {
-        return Media::where('ref_table', 'berkas_persyaratan')
-                   ->where('ref_id', $this->berkas_id)
-                   ->orderBy('sort_order', 'asc')
-                   ->get();
+        return $this->hasMany(Media::class, 'ref_id', 'berkas_id')
+            ->where('ref_table', 'berkas_persyaratan')
+            ->orderBy('sort_order');
     }
 
-    /**
-     * CEK APAKAH BERKAS SUDAH ADA FILENYA
-     */
-    public function hasFiles()
-    {
-        return Media::where('ref_table', 'berkas_persyaratan')
-                   ->where('ref_id', $this->berkas_id)
-                   ->exists();
-    }
-
-    /**
-     * JUMLAH FILE YANG DIMILIKI
-     */
-    public function filesCount()
-    {
-        return Media::where('ref_table', 'berkas_persyaratan')
-                   ->where('ref_id', $this->berkas_id)
-                   ->count();
-    }
-
-    /**
-     * GET STATUS BADGE COLOR (untuk tampilan)
-     */
+    // 🔥 ACCESSOR UNTUK STATUS BADGE
     public function getStatusBadgeAttribute()
     {
-        $statuses = [
-            'ya' => 'success',
-            'tidak' => 'danger',
-            'proses' => 'warning'
+        $badges = [
+            'menunggu' => 'bg-warning',
+            'valid' => 'bg-success',
+            'tidak_valid' => 'bg-danger',
         ];
 
-        return $statuses[$this->valid] ?? 'secondary';
+        return $badges[$this->valid] ?? 'bg-secondary';
     }
 
-    /**
-     * GET STATUS TEXT (untuk tampilan)
-     */
+    // 🔥 ACCESSOR UNTUK STATUS TEXT
     public function getStatusTextAttribute()
     {
         $texts = [
-            'ya' => 'Valid',
-            'tidak' => 'Tidak Valid',
-            'proses' => 'Proses Verifikasi'
+            'menunggu' => 'Menunggu',
+            'valid' => 'Valid',
+            'tidak_valid' => 'Tidak Valid',
         ];
 
-        return $texts[$this->valid] ?? 'Unknown';
+        return $texts[$this->valid] ?? $this->valid;
     }
 
-    /**
-     * HAPUS SEMUA FILE MEDIA TERKAIT
-     */
-    public function deleteMediaFiles()
+    // 🔥 Cek apakah punya file
+    public function hasFiles()
     {
-        $files = $this->mediaFiles();
-
-        foreach ($files as $file) {
-            // Hapus file fisik
-            $filePath = public_path('uploads/media/berkas_persyaratan/' . $file->file_name);
-            if (file_exists($filePath)) {
-                unlink($filePath);
-            }
-
-            // Hapus record media
-            $file->delete();
-        }
-
-        return true;
+        return $this->media()->exists();
     }
 
-    /**
-     * UPLOAD FILES KE MEDIA
-     */
-    public function uploadFiles($files, $caption = '')
+    // 🔥 Jumlah file
+    public function getFilesCountAttribute()
     {
-        $uploaded = [];
-
-        foreach ($files as $index => $file) {
-            if ($file->isValid()) {
-                // Generate nama file unik
-                $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-
-                // Simpan file ke folder
-                $file->move(
-                    public_path('uploads/media/berkas_persyaratan'),
-                    $fileName
-                );
-
-                // Simpan ke tabel media
-                $media = Media::create([
-                    'ref_table' => 'berkas_persyaratan',
-                    'ref_id' => $this->berkas_id,
-                    'file_name' => $fileName,
-                    'caption' => $caption ?: $file->getClientOriginalName(),
-                    'mime_type' => $file->getMimeType(),
-                    'sort_order' => $index,
-                ]);
-
-                $uploaded[] = $media;
-            }
-        }
-
-        return $uploaded;
+        return $this->media()->count();
     }
 }

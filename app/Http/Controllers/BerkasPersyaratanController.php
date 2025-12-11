@@ -3,266 +3,247 @@
 namespace App\Http\Controllers;
 
 use App\Models\BerkasPersyaratan;
-use App\Models\Pengajuan; // DIUBAH: PermohonanSurat menjadi Pengajuan
-use App\Models\Media;
+use App\Models\Pengajuan;
+use App\Models\Media; // ✅ TAMBAHKAN INI
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class BerkasPersyaratanController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        // Ambil semua berkas dengan relasi (UBAH permohonan menjadi pengajuan)
-        $berkas = BerkasPersyaratan::with(['pengajuan', 'pengajuan.jenis', 'pengajuan.pemohon']) // DIUBAH
-                                  ->latest()
-                                  ->paginate(10);
+        $query = BerkasPersyaratan::with(['pengajuan.warga', 'media']); // ✅ TAMBAH 'media'
 
-        return view('berkas_persyaratan.index', compact('berkas'));
+        if ($request->filled('valid')) {
+            $query->where('valid', $request->valid);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('nama_berkas', 'like', '%' . $request->search . '%');
+        }
+
+        $berkas = $query->orderBy('created_at', 'desc')->paginate(10);
+        $statusList = [
+            'menunggu' => 'Menunggu',
+            'valid' => 'Valid',
+            'tidak_valid' => 'Tidak Valid'
+        ];
+
+        return view('pages.berkas_persyaratan.index', compact('berkas', 'statusList'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        // Ambil pengajuan yang masih aktif (UBAH PermohonanSurat menjadi Pengajuan)
-        $pengajuans = Pengajuan::whereIn('status', ['menunggu', 'diproses']) // DIUBAH
-                              ->with(['jenis', 'pemohon'])
-                              ->get();
-
-        return view('berkas_persyaratan.create', compact('pengajuans')); // DIUBAH variable name
+        $pengajuan = Pengajuan::with('warga')->orderBy('created_at', 'desc')->get();
+        return view('pages.berkas_persyaratan.create', compact('pengajuan'));
     }
 
-    /**
-     * ✅ STORE dengan MULTIPLE FILE UPLOAD ke MEDIA (SUDAH DIUBAH)
-     */
     public function store(Request $request)
     {
-        // Validasi (UBAH permohonan_id menjadi pengajuan_id)
         $validator = Validator::make($request->all(), [
-            'pengajuan_id' => 'required|exists:pengajuans,pengajuan_id', // DIUBAH
-            'nama_berkas' => 'required|string|max:200',
-            'valid' => 'required|in:ya,tidak,proses',
-            'files' => 'required|array|min:1',
-            'files.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
-        ], [
-            'pengajuan_id.required' => 'Pengajuan harus dipilih', // DIUBAH pesan
-            'pengajuan_id.exists' => 'Pengajuan tidak ditemukan', // DIUBAH pesan
-            'nama_berkas.required' => 'Nama berkas harus diisi',
-            'files.required' => 'Minimal upload 1 file',
-            'files.*.mimes' => 'File harus berupa: jpg, jpeg, png, pdf, doc, docx',
-            'files.*.max' => 'File maksimal 5MB',
+            'permohonan_id' => 'required|exists:pengajuans,permohonan_id',
+            'nama_berkas' => 'required|string|max:100',
+            'valid' => 'required|in:menunggu,valid,tidak_valid',
+            'berkas_files' => 'required|array|min:1',
+            'berkas_files.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'captions.*' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return back()->withErrors($validator)->withInput();
         }
 
-        // 1. SIMPAN BERKAS PERSYARATAN (UBAH pengajuan_id)
-        $berkas = BerkasPersyaratan::create([
-            'pengajuan_id' => $request->pengajuan_id, // DIUBAH
-            'nama_berkas' => $request->nama_berkas,
-            'valid' => $request->valid,
-        ]);
+        try {
+            // 1. Simpan data ke tabel berkas_persyaratan
+            $berkas = BerkasPersyaratan::create([
+                'permohonan_id' => $request->permohonan_id,
+                'nama_berkas' => $request->nama_berkas,
+                'valid' => $request->valid,
+            ]);
 
-        // ✅ 2. UPLOAD MULTIPLE FILES KE TABEL MEDIA
-        if ($request->hasFile('files')) {
-            foreach ($request->file('files') as $index => $file) {
+            // 2. Upload multiple files ke tabel media
+            $uploadedCount = 0;
+            foreach ($request->file('berkas_files') as $index => $file) {
                 if ($file->isValid()) {
-                    // Generate nama file
-                    $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    $originalName = $file->getClientOriginalName();
+                    $fileName = time() . '_' . $index . '_' . preg_replace('/[^a-zA-Z0-9.]/', '_', $originalName);
 
-                    // Simpan file ke folder
-                    $file->move(
-                        public_path('uploads/media/berkas_persyaratan'),
-                        $fileName
-                    );
+                    // Path: media/berkas_persyaratan/[berkas_id]/[file_name]
+                    $path = 'media/berkas_persyaratan/' . $berkas->berkas_id;
+                    $filePath = $file->storeAs($path, $fileName, 'public');
 
-                    // ✅ SIMPAN KE TABEL MEDIA
+                    // Simpan ke tabel media
                     Media::create([
                         'ref_table' => 'berkas_persyaratan',
                         'ref_id' => $berkas->berkas_id,
                         'file_name' => $fileName,
-                        'caption' => $request->nama_berkas,
+                        'caption' => $request->captions[$index] ?? $originalName,
                         'mime_type' => $file->getMimeType(),
                         'sort_order' => $index,
                     ]);
+
+                    $uploadedCount++;
                 }
             }
-        }
 
-        return redirect()->route('berkas-persyaratan.index')
-            ->with('success', 'Berkas persyaratan berhasil ditambahkan dengan ' . count($request->file('files')) . ' file');
+            return redirect()->route('berkas_persyaratan.index')
+                ->with('success', "Berkas '{$request->nama_berkas}' dengan {$uploadedCount} file berhasil ditambahkan.");
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menambahkan berkas: ' . $e->getMessage())->withInput();
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
-        $berkas = BerkasPersyaratan::with(['pengajuan', 'pengajuan.jenis', 'pengajuan.pemohon']) // DIUBAH
-                                  ->findOrFail($id);
-
-        // ✅ AMBIL FILE MEDIA
-        $mediaFiles = Media::where('ref_table', 'berkas_persyaratan')
-                          ->where('ref_id', $id)
-                          ->orderBy('sort_order')
-                          ->get();
-
-        return view('berkas_persyaratan.show', compact('berkas', 'mediaFiles'));
+        $berkas = BerkasPersyaratan::with(['pengajuan.warga', 'media'])->findOrFail($id);
+        return view('pages.berkas_persyaratan.show', compact('berkas'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id)
     {
-        $berkas = BerkasPersyaratan::findOrFail($id);
-        $pengajuans = Pengajuan::all(); // DIUBAH: PermohonanSurat menjadi Pengajuan
+        $berkas = BerkasPersyaratan::with('media')->findOrFail($id);
+        $pengajuan = Pengajuan::with('warga')->orderBy('created_at', 'desc')->get();
+        $statusList = [
+            'menunggu' => 'Menunggu',
+            'valid' => 'Valid',
+            'tidak_valid' => 'Tidak Valid'
+        ];
 
-        // ✅ AMBIL FILE MEDIA
-        $mediaFiles = Media::where('ref_table', 'berkas_persyaratan')
-                          ->where('ref_id', $id)
-                          ->orderBy('sort_order')
-                          ->get();
-
-        return view('berkas_persyaratan.edit', compact('berkas', 'pengajuans', 'mediaFiles')); // DIUBAH variable name
+        return view('pages.berkas_persyaratan.edit', compact('berkas', 'pengajuan', 'statusList'));
     }
 
-    /**
-     * ✅ UPDATE dengan tambahan file (SUDAH DIUBAH)
-     */
     public function update(Request $request, $id)
     {
         $berkas = BerkasPersyaratan::findOrFail($id);
 
-        // Validasi (UBAH permohonan_id menjadi pengajuan_id)
         $validator = Validator::make($request->all(), [
-            'pengajuan_id' => 'required|exists:pengajuans,pengajuan_id', // DIUBAH
-            'nama_berkas' => 'required|string|max:200',
-            'valid' => 'required|in:ya,tidak,proses',
-            'files' => 'nullable|array',
-            'files.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
+            'permohonan_id' => 'required|exists:pengajuans,permohonan_id',
+            'nama_berkas' => 'required|string|max:100',
+            'valid' => 'required|in:menunggu,valid,tidak_valid',
+            'new_files' => 'nullable|array',
+            'new_files.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'new_captions.*' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return back()->withErrors($validator)->withInput();
         }
 
-        // Update berkas (UBAH pengajuan_id)
-        $berkas->update([
-            'pengajuan_id' => $request->pengajuan_id, // DIUBAH
-            'nama_berkas' => $request->nama_berkas,
-            'valid' => $request->valid,
-        ]);
+        try {
+            // 1. Update data utama
+            $berkas->update([
+                'permohonan_id' => $request->permohonan_id,
+                'nama_berkas' => $request->nama_berkas,
+                'valid' => $request->valid,
+            ]);
 
-        // ✅ UPLOAD FILE BARU JIKA ADA
-        if ($request->hasFile('files')) {
-            $existingCount = Media::where('ref_table', 'berkas_persyaratan')
-                                 ->where('ref_id', $id)
-                                 ->count();
+            // 2. Tambah file baru jika ada
+            if ($request->hasFile('new_files')) {
+                $existingCount = Media::where('ref_table', 'berkas_persyaratan')
+                    ->where('ref_id', $id)
+                    ->count();
 
-            foreach ($request->file('files') as $index => $file) {
-                if ($file->isValid()) {
-                    $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('uploads/media/berkas_persyaratan'), $fileName);
+                foreach ($request->file('new_files') as $index => $file) {
+                    if ($file->isValid()) {
+                        $originalName = $file->getClientOriginalName();
+                        $fileName = time() . '_' . ($existingCount + $index) . '_' . preg_replace('/[^a-zA-Z0-9.]/', '_', $originalName);
 
-                    Media::create([
-                        'ref_table' => 'berkas_persyaratan',
-                        'ref_id' => $id,
-                        'file_name' => $fileName,
-                        'caption' => $request->nama_berkas,
-                        'mime_type' => $file->getMimeType(),
-                        'sort_order' => $existingCount + $index,
-                    ]);
+                        $path = 'media/berkas_persyaratan/' . $id;
+                        $filePath = $file->storeAs($path, $fileName, 'public');
+
+                        Media::create([
+                            'ref_table' => 'berkas_persyaratan',
+                            'ref_id' => $id,
+                            'file_name' => $fileName,
+                            'caption' => $request->new_captions[$index] ?? $originalName,
+                            'mime_type' => $file->getMimeType(),
+                            'sort_order' => $existingCount + $index,
+                        ]);
+                    }
                 }
             }
-        }
 
-        return redirect()->route('berkas-persyaratan.index')
-            ->with('success', 'Berkas persyaratan berhasil diperbarui');
+            return redirect()->route('berkas_persyaratan.index')
+                ->with('success', 'Berkas persyaratan berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal memperbarui berkas: ' . $e->getMessage())->withInput();
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         $berkas = BerkasPersyaratan::findOrFail($id);
 
-        // ✅ HAPUS SEMUA FILE MEDIA TERKAIT
-        $berkas->deleteMediaFiles();
+        try {
+            // 1. Hapus semua file media terkait
+            $mediaFiles = Media::where('ref_table', 'berkas_persyaratan')
+                ->where('ref_id', $id)
+                ->get();
 
-        // Hapus berkas
-        $berkas->delete();
+            foreach ($mediaFiles as $media) {
+                // Hapus file fisik
+                $filePath = 'media/berkas_persyaratan/' . $id . '/' . $media->file_name;
+                if (Storage::disk('public')->exists($filePath)) {
+                    Storage::disk('public')->delete($filePath);
+                }
+                // Hapus dari database
+                $media->delete();
+            }
 
-        return redirect()->route('berkas-persyaratan.index')
-            ->with('success', 'Berkas persyaratan berhasil dihapus');
+            // 2. Hapus berkas utama
+            $berkas->delete();
+
+            return redirect()->route('berkas_persyaratan.index')
+                ->with('success', 'Berkas persyaratan dan semua file berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            return redirect()->route('berkas_persyaratan.index')
+                ->with('error', 'Gagal menghapus berkas: ' . $e->getMessage());
+        }
     }
 
-    /**
-     * ✅ HAPUS FILE MEDIA SATUAN (AJAX)
-     */
+    // ✅ METHOD BARU: Hapus file individual dari media
     public function destroyMedia($berkas_id, $media_id)
     {
-        // Pastikan media milik berkas yang benar
-        $media = Media::where('ref_table', 'berkas_persyaratan')
-                     ->where('ref_id', $berkas_id)
-                     ->where('media_id', $media_id)
-                     ->firstOrFail();
+        try {
+            $media = Media::where('ref_table', 'berkas_persyaratan')
+                ->where('ref_id', $berkas_id)
+                ->where('media_id', $media_id)
+                ->firstOrFail();
 
-        // Hapus file fisik
-        $filePath = public_path('uploads/media/berkas_persyaratan/' . $media->file_name);
-        if (file_exists($filePath)) {
-            unlink($filePath);
+            // Hapus file fisik
+            $filePath = 'media/berkas_persyaratan/' . $berkas_id . '/' . $media->file_name;
+            if (Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
+            }
+
+            // Hapus dari database
+            $media->delete();
+
+            return back()->with('success', 'File berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus file: ' . $e->getMessage());
+        }
+    }
+
+    // ✅ METHOD BARU: Download file
+    public function downloadMedia($berkas_id, $media_id)
+    {
+        $media = Media::where('ref_table', 'berkas_persyaratan')
+            ->where('ref_id', $berkas_id)
+            ->where('media_id', $media_id)
+            ->firstOrFail();
+
+        $filePath = 'media/berkas_persyaratan/' . $berkas_id . '/' . $media->file_name;
+
+        if (!Storage::disk('public')->exists($filePath)) {
+            return back()->with('error', 'File tidak ditemukan.');
         }
 
-        // Hapus dari database
-        $media->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'File berhasil dihapus'
-        ]);
-    }
-
-    /**
-     * UPDATE STATUS VALIDASI
-     */
-    public function updateStatus(Request $request, $id)
-    {
-        $request->validate([
-            'valid' => 'required|in:ya,tidak'
-        ]);
-
-        $berkas = BerkasPersyaratan::findOrFail($id);
-        $berkas->update(['valid' => $request->valid]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Status validasi diperbarui'
-        ]);
-    }
-
-    /**
-     * GET BERKAS BY PENGAJUAN (AJAX)
-     */
-    public function getByPengajuan($pengajuan_id)
-    {
-        $berkas = BerkasPersyaratan::with(['mediaFiles'])
-                                  ->where('pengajuan_id', $pengajuan_id)
-                                  ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $berkas
-        ]);
+        return Storage::disk('public')->download($filePath, $media->caption . '.' . pathinfo($media->file_name, PATHINFO_EXTENSION));
     }
 }

@@ -1,24 +1,19 @@
 <?php
+// app/Models/Media.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Media extends Model
 {
     use HasFactory;
 
-    // Nama tabel
-    protected $table = 'media';
-
-    // Primary key
+    protected $table      = 'media';
     protected $primaryKey = 'media_id';
 
-    // Non-aktifkan timestamps otomatis (karena kita pakai created_at manual)
-    public $timestamps = false;
-
-    // Kolom yang bisa diisi (mass assignment)
     protected $fillable = [
         'ref_table',
         'ref_id',
@@ -26,16 +21,13 @@ class Media extends Model
         'caption',
         'mime_type',
         'sort_order',
-        'uploaded_by',
-        'file_size'
     ];
 
-    // Casting tipe data
     protected $casts = [
-        'ref_id' => 'integer',
+        'ref_id'     => 'integer',
         'sort_order' => 'integer',
-        'uploaded_by' => 'integer',
-        'created_at' => 'datetime'
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -44,64 +36,69 @@ class Media extends Model
     public function scopeByReference($query, $refTable, $refId)
     {
         return $query->where('ref_table', $refTable)
-                    ->where('ref_id', $refId)
-                    ->orderBy('sort_order', 'asc');
+            ->where('ref_id', $refId)
+            ->orderBy('sort_order', 'asc');
     }
 
     /**
-     * Scope untuk tabel tertentu
+     * Get URL untuk mengakses file
      */
-    public function scopeByTable($query, $refTable)
+   
+
+    /**
+     * Cek apakah file ada di storage
+     */
+    public function fileExists()
     {
-        return $query->where('ref_table', $refTable);
+        return Storage::disk('public')->exists('media/jenis_surat/' . $this->file_name);
     }
 
     /**
-     * Get file URL untuk diakses publik
+     * Get icon berdasarkan tipe file
      */
-    public function getFileUrlAttribute()
+    public function getIcon()
     {
-        // Sesuaikan dengan path folder Anda
-        $baseUrl = config('app.url', url('/'));
-        return $baseUrl . '/uploads/media/' . $this->ref_table . '/' . $this->file_name;
+        $mime = $this->mime_type ?? '';
+
+        // Cek gambar
+        if (strpos($mime, 'image/') === 0) {
+            return 'fas fa-image';
+        }
+
+        // Cek PDF
+        if ($mime === 'application/pdf') {
+            return 'fas fa-file-pdf';
+        }
+
+        // Cek Word
+        if (strpos($mime, 'word') !== false ||
+            $mime === 'application/msword' ||
+            $mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            return 'fas fa-file-word';
+        }
+
+        // Cek Excel
+        if (strpos($mime, 'excel') !== false ||
+            strpos($mime, 'sheet') !== false ||
+            $mime === 'application/vnd.ms-excel' ||
+            $mime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+            return 'fas fa-file-excel';
+        }
+
+        // Default
+        return 'fas fa-file';
     }
 
-    /**
-     * Get file path fisik di server
-     */
-    public function getFilePathAttribute()
+    public function getFileUrl()
     {
-        return public_path('uploads/media/' . $this->ref_table . '/' . $this->file_name);
-    }
+        // Tentukan path berdasarkan ref_table
+        if ($this->ref_table === 'jenis_surat') {
+            return Storage::disk('public')->url('media/jenis_surat/' . $this->file_name);
+        } elseif ($this->ref_table === 'pengajuans') {
+            return Storage::disk('public')->url('media/pengajuan/' . $this->file_name);
+        }
 
-    /**
-     * Cek apakah file adalah gambar
-     */
-    public function getIsImageAttribute()
-    {
-        return strpos($this->mime_type, 'image/') === 0;
-    }
-
-    /**
-     * Cek apakah file adalah PDF
-     */
-    public function getIsPdfAttribute()
-    {
-        return $this->mime_type === 'application/pdf';
-    }
-
-    /**
-     * Cek apakah file adalah dokumen office
-     */
-    public function getIsDocumentAttribute()
-    {
-        $officeMimes = [
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ];
-
-        return in_array($this->mime_type, $officeMimes);
+        // Default
+        return Storage::disk('public')->url('media/' . $this->file_name);
     }
 }
