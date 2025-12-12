@@ -1,122 +1,160 @@
 <?php
 
-
 namespace App\Http\Controllers;
 
-
-use Illuminate\Http\Request;
 use App\Models\Warga;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class WargaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data['warga'] = Warga::all();
-        return view('pages.warga.index', $data);
-    }
+        $query = Warga::query();
 
+        // Filter jenis kelamin (form: L/P, database: Laki-laki/Perempuan)
+        if ($request->filled('jenis_kelamin')) {
+            $jkForm = $request->jenis_kelamin;
+            $jkDB = $jkForm == 'L' ? 'Laki-laki' : 'Perempuan';
+            $query->where('jenis_kelamin', $jkDB);
+        }
+
+        // Filter agama
+        if ($request->filled('agama')) {
+            $query->where('agama', $request->agama);
+        }
+
+        // Search
+        if ($request->filled('search')) {
+            $query->searchSimple($request->search);
+        }
+
+        $warga = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        return view('pages.warga.index', compact('warga'));
+    }
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        return view('pages.warga.create');
+        $agamaList = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'];
+        return view('pages.warga.create', compact('agamaList'));
     }
-
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'no_ktp' => 'required|string|size:16|unique:warga',
-            'nama' => 'required|string|max:255|min:3',
-            'jenis_kelamin' => 'required|in:L,P',
-            'agama' => 'required|string|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
-            'pekerjaan' => 'required|string|max:255|min:2',
-            'telp' => 'required|string|min:10|max:15',
-            'email' => 'nullable|email|max:255'
-        ], [
-            // Pesan error dalam bahasa Indonesia
-            'no_ktp.required' => 'Nomor KTP wajib diisi',
-            'no_ktp.size' => 'Nomor KTP harus 16 digit',
-            'no_ktp.unique' => 'Nomor KTP sudah terdaftar',
-            'nama.required' => 'Nama lengkap wajib diisi',
-            'nama.min' => 'Nama lengkap minimal 3 karakter',
-            'jenis_kelamin.required' => 'Jenis kelamin wajib dipilih',
-            'jenis_kelamin.in' => 'Jenis kelamin harus Laki-laki atau Perempuan',
-            'agama.required' => 'Agama wajib dipilih',
-            'agama.in' => 'Agama harus dipilih dari pilihan yang tersedia',
-            'pekerjaan.required' => 'Pekerjaan wajib diisi',
-            'pekerjaan.min' => 'Pekerjaan minimal 2 karakter',
-            'telp.required' => 'Nomor telepon wajib diisi',
-            'telp.min' => 'Nomor telepon minimal 10 digit',
-            'telp.max' => 'Nomor telepon maksimal 15 digit',
-            'email.email' => 'Format email tidak valid'
+        // Konversi 'L'/'P' ke 'Laki-laki'/'Perempuan'
+        $data = $request->all();
+
+        if ($data['jenis_kelamin'] == 'L') {
+            $data['jenis_kelamin'] = 'Laki-laki';
+        } elseif ($data['jenis_kelamin'] == 'P') {
+            $data['jenis_kelamin'] = 'Perempuan';
+        }
+
+        $validator = Validator::make($data, [
+            'no_ktp' => 'required|numeric|digits:16|unique:warga',
+            'nama' => 'required|string|max:100',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'agama' => 'required|string|max:50',
+            'pekerjaan' => 'required|string|max:100',
+            'telp' => 'required|string|max:15',
+            'email' => 'required|email|unique:warga',
         ]);
 
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
 
-        Warga::create($validated);
-
+        Warga::create($data);
 
         return redirect()->route('warga.index')
-            ->with('success', 'Data warga berhasil ditambahkan!');
+            ->with('success', 'Data warga berhasil ditambahkan.');
     }
-
 
     /**
      * Display the specified resource.
      */
-    public function show(Warga $id) {}
-
+    public function show($id)
+    {
+        $warga = Warga::findOrFail($id);
+        return view('pages.warga.show', compact('warga'));
+    }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        $data['warga'] = Warga::findOrFail($id);
-        return view('pages.warga.edit', $data);
-    }
+        $warga = Warga::findOrFail($id);
+        $agamaList = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'];
 
+        // Konversi untuk form: 'Laki-laki'/'Perempuan' ke 'L'/'P'
+        $jenis_kelamin_form = $warga->jenis_kelamin == 'Laki-laki' ? 'L' : 'P';
+
+        return view('pages.warga.edit', compact('warga', 'agamaList', 'jenis_kelamin_form'));
+    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        $warga_id = $id;
-        $warga = Warga::findOrFail($warga_id);
+        $warga = Warga::findOrFail($id);
 
-        $warga->no_ktp = $request->no_ktp;
-        $warga->nama = $request->nama;
-        $warga->jenis_kelamin = $request->jenis_kelamin;
-        $warga->agama = $request->agama;
-        $warga->pekerjaan = $request->pekerjaan;
-        $warga->telp = $request->telp;
-        $warga->email = $request->email;
+        $data = $request->all();
 
-        $warga->save();
+        // Konversi 'L'/'P' ke 'Laki-laki'/'Perempuan'
+        if ($data['jenis_kelamin'] == 'L') {
+            $data['jenis_kelamin'] = 'Laki-laki';
+        } elseif ($data['jenis_kelamin'] == 'P') {
+            $data['jenis_kelamin'] = 'Perempuan';
+        }
 
-        return redirect()->route('warga.index')->with('success', 'Perubahan Data Warga Berhasil!');
+        $validator = Validator::make($data, [
+            'no_ktp' => 'required|numeric|digits:16|unique:warga,no_ktp,' . $id . ',warga_id',
+            'nama' => 'required|string|max:100',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'agama' => 'required|string|max:50',
+            'pekerjaan' => 'required|string|max:100',
+            'telp' => 'required|string|max:15',
+            'email' => 'required|email|unique:warga,email,' . $id . ',warga_id',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $warga->update($data);
+
+        return redirect()->route('warga.index')
+            ->with('success', 'Data warga berhasil diperbarui.');
     }
-
-
-
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
         $warga = Warga::findOrFail($id);
+
+        // Cek apakah warga punya pengajuan
+        if ($warga->memiliki_pengajuan) {
+            return redirect()->route('warga.index')
+                ->with('error', 'Tidak dapat menghapus warga yang sudah memiliki pengajuan.');
+        }
+
         $warga->delete();
-        return redirect()->route('warga.index')->with('success', 'Data berhasil dihapus');
+
+        return redirect()->route('warga.index')
+            ->with('success', 'Data warga berhasil dihapus.');
     }
 }
