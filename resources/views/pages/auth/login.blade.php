@@ -15,14 +15,9 @@
         <!-- Logo & Brand -->
         <div class="brand-section">
             <div class="logo-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z" fill="url(#gradient1)"/>
-                    <defs>
-                        <linearGradient id="gradient1" x1="2" y1="4" x2="22" y2="20" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#667eea"/>
-                            <stop offset="1" stop-color="#764ba2"/>
-                        </linearGradient>
-                    </defs>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4Z"
+                          fill="url(#gradient1)" />
                 </svg>
             </div>
             <h1 class="brand-name">Suratku</h1>
@@ -34,54 +29,62 @@
             <p>Masuk untuk mengakses layanan pengajuan surat</p>
         </div>
 
-        <!-- Alerts would go here in actual implementation -->
-        <!-- @if (session('success'))
+        {{-- ALERT SUCCESS --}}
+        @if (session('success'))
             <div class="alert alert-success">
-                <svg class="alert-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
                 {{ session('success') }}
             </div>
-        @endif -->
+        @endif
+
+        {{-- ALERT ERROR --}}
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul style="margin:0; padding-left:18px;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <form action="{{ route('login.post') }}" method="POST" class="login-form">
-            <!-- @csrf -->
+            @csrf {{-- FIX UTAMA 419 --}}
+
             <div class="form-group">
                 <label for="email">
-                    <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 8L10.89 13.26C11.5148 13.6728 12.4852 13.6728 13.11 13.26L21 8M5 19H19C20.1046 19 21 18.1046 21 17V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V17C3 18.1046 3.89543 19 5 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
                     Alamat Email
                 </label>
-                <input type="email" id="email" name="email" class="form-control"
-                    placeholder="nama@email.com" required>
+                <input type="email"
+                       id="email"
+                       name="email"
+                       class="form-control"
+                       value="{{ old('email') }}"
+                       placeholder="nama@email.com"
+                       required>
             </div>
 
             <div class="form-group">
                 <label for="password">
-                    <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <path d="M16 12V8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8V12M5 12H19C20.1046 12 21 12.8954 21 14V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V14C3 12.8954 3.89543 12 5 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
                     Kata Sandi
                 </label>
-                <input type="password" id="password" name="password" class="form-control"
-                    placeholder="Masukkan kata sandi" required>
+                <input type="password"
+                       id="password"
+                       name="password"
+                       class="form-control"
+                       placeholder="Masukkan kata sandi"
+                       required>
             </div>
 
             <div class="form-options">
                 <label class="remember-me">
-                    <input type="checkbox" id="remember" name="remember">
+                    <input type="checkbox" name="remember">
                     <span class="checkmark"></span>
                     Ingat saya
                 </label>
-                <a href="#" class="forgot-password">Lupa kata sandi?</a>
             </div>
 
             <button type="submit" class="btn btn-primary">
                 <span>Masuk ke Akun</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M14 5L21 12M21 12L14 19M21 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
             </button>
         </form>
 
@@ -90,48 +93,9 @@
         </div>
 
         <div class="register-link">
-            <p>Belum memiliki akun? <a href="{{ route('register') }}">Daftar Sekarang</a></p>
-        </div>
-
-        <!-- Info Section -->
-        <div class="layanan-info">
-            <div class="info-header">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <h4 class="info-title">Tentang Suratku</h4>
-            </div>
-
-            <p class="info-text">
-                Platform digital yang memudahkan masyarakat mengakses layanan administratif desa seperti pembuatan surat keterangan, surat domisili, dan layanan kependudukan secara online.
+            <p>Belum memiliki akun?
+                <a href="{{ route('register') }}">Daftar Sekarang</a>
             </p>
-
-            <div class="features-grid">
-                <div class="feature-item">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M13 10V3L4 14H11L11 21L20 10L13 10Z" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span>Proses cepat & efisien</span>
-                </div>
-                <div class="feature-item">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V13C20 11.8954 19.1046 11 18 11H6C4.89543 11 4 11.8954 4 13V19C4 20.1046 4.89543 21 6 21ZM16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11H16Z" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span>Data aman & terintegrasi</span>
-                </div>
-                <div class="feature-item">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span>Upload berkas mudah</span>
-                </div>
-                <div class="feature-item">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 6.10457 9.89543 7 11 7H13C14.1046 7 15 6.10457 15 5M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5M12 12H15M12 16H15M9 12H9.01M9 16H9.01" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span>Lacak status real-time</span>
-                </div>
-            </div>
         </div>
 
         <div class="form-footer">

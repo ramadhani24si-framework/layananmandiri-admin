@@ -327,6 +327,9 @@
             }
         });
     </script>
+    <div class="form-footer">
+            <p>&copy; 2025 Sistem Layanan Mandiri. All rights reserved.</p>
+        </div>
 @endpush
 
 @push('styles')
@@ -384,7 +387,5 @@
         vertical-align: middle;
     }
 </style>
- <div class="form-footer">
-            <p>&copy; 2025 Sistem Layanan Mandiri. All rights reserved.</p>
-        </div>
+
 @endpush
