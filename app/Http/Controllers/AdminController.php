@@ -21,7 +21,7 @@ class AdminController extends Controller
         // dd($userRole); // Uncomment untuk debugging
 
         // Data berdasarkan role
-        if (in_array($userRole, ['super_admin', 'admin'])) {
+        if (in_array($userRole, ['super_admin', 'warga'])) {
             // Data untuk admin dan super_admin
             $userCount = User::count();
             $wargaCount = Warga::count();

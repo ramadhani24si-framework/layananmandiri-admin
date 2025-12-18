@@ -10,6 +10,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WargaController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\File;
+use App\Http\Controllers\ProfileController;
 
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -43,7 +44,7 @@ Route::middleware('check.login')->group(function () {
         ->name('pengajuan.update-status');
 
     // ==================== ROUTES UNTUK ADMIN & SUPER ADMIN ====================
-    Route::middleware(['check.role:admin,super_admin'])->group(function () {
+    Route::middleware(['check.role:warga,super_admin'])->group(function () {
         Route::resource('user', UserController::class);
         Route::resource('warga', WargaController::class);
         Route::resource('jenis_surat', JenisSuratController::class);
@@ -113,3 +114,12 @@ if (app()->environment('local')) {
 
 // JENIS SURAT INDEX (bisa diakses tanpa login atau dengan login)
 Route::get('/jenis_surat', [JenisSuratController::class, 'index'])->name('jenis_surat.index');
+
+
+// Profile routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile/picture', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});

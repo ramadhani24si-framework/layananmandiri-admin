@@ -115,6 +115,9 @@
             </form>
         </div>
     </div>
+     <div class="form-footer">
+            <p>&copy; 2025 Sistem Layanan Mandiri. All rights reserved.</p>
+        </div>
 </div>
 @endsection
 

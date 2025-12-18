@@ -49,8 +49,9 @@
                 <form method="GET" action="{{ route('user.index') }}" class="mb-3">
                     <div class="row g-2">
                         <div class="col-md-8">
-                            <input type="text" name="search" class="form-control" placeholder="Cari nama atau email..."
-                                value="{{ request('search') }}">
+                            <input type="text" name="search" class="form-control"
+                                   placeholder="Cari nama, email, atau role..."
+                                   value="{{ request('search') }}">
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-primary w-100">
@@ -82,11 +83,13 @@
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
-                                <th>No</th>
+                                <th width="50">No</th>
+                                <th width="60">Foto</th>
                                 <th>Nama</th>
                                 <th>Email</th>
+                                <th>Role</th>
                                 <th>Dibuat</th>
-                                <th>Aksi</th>
+                                <th width="120">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -94,27 +97,58 @@
                                 <tr>
                                     <td>{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
                                     <td>
+                                        @if($item->profile_picture_url && file_exists(public_path($item->profile_picture_url)))
+                                            {{-- Jika user memiliki foto profil --}}
+                                            <img src="{{ asset($item->profile_picture_url) }}"
+                                                 class="rounded-circle"
+                                                 width="40"
+                                                 height="40"
+                                                 alt="{{ $item->name }}"
+                                                 style="object-fit: cover;"
+                                                 title="{{ $item->name }}">
+                                        @else
+                                            {{-- Jika user tidak memiliki foto profil, tampilkan placeholder ilustrasi kontak --}}
+                                            <div class="contact-icon-placeholder rounded-circle">
+                                                <svg class="contact-icon" viewBox="0 0 24 24" width="24" height="24">
+                                                    <path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                                                </svg>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
                                         <strong>{{ $item->name }}</strong>
                                         @if ($item->id == auth()->id())
                                             <span class="badge bg-primary ms-2">Akun Anda</span>
                                         @endif
                                     </td>
                                     <td>{{ $item->email }}</td>
+                                    <td>
+                                        <span class="badge
+                                            @if($item->role == 'super_admin') bg-danger
+                                            @elseif($item->role == 'admin') bg-warning
+                                            @else bg-info
+                                            @endif">
+                                            {{ $item->formatted_role }}
+                                        </span>
+                                    </td>
                                     <td>{{ $item->created_at->format('d/m/Y') }}</td>
                                     <td>
-                                        <div class="btn-group">
-                                            <a href="{{ route('user.show', $item->id) }}" class="btn btn-sm btn-info"
-                                                title="Detail">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ route('user.show', $item->id) }}"
+                                               class="btn btn-sm btn-info"
+                                               title="Detail User">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('user.edit', $item->id) }}" class="btn btn-sm btn-warning"
-                                                title="Edit">
+                                            <a href="{{ route('user.edit', $item->id) }}"
+                                               class="btn btn-sm btn-warning"
+                                               title="Edit User">
                                                 <i class="fas fa-edit"></i>
                                             </a>
 
                                             {{-- FORM DELETE DENGAN KONFIRMASI KHUSUS --}}
-                                            <form action="{{ route('user.destroy', $item->id) }}" method="POST"
-                                                class="d-inline">
+                                            <form action="{{ route('user.destroy', $item->id) }}"
+                                                  method="POST"
+                                                  class="d-inline">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger"
                                                     onclick="return confirm('{{ $item->id == auth()->id() ? '⚠️ PERINGATAN: Anda akan menghapus AKUN SENDIRI! Setelah dihapus, Anda akan otomatis logout. Yakin?' : 'Hapus user ' . $item->name . '?' }}')"
@@ -127,7 +161,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center">Tidak ada data user</td>
+                                    <td colspan="7" class="text-center">Tidak ada data user</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -293,4 +327,64 @@
             }
         });
     </script>
+@endpush
+
+@push('styles')
+<style>
+    /* Style untuk foto profil di tabel */
+    .rounded-circle {
+        border: 2px solid #dee2e6;
+        transition: all 0.3s;
+    }
+
+    .rounded-circle:hover {
+        border-color: #0d6efd;
+        transform: scale(1.1);
+    }
+
+    /* Style untuk contact icon placeholder */
+    .contact-icon-placeholder {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #e9ecef;
+        border: 2px solid #dee2e6;
+        cursor: default;
+        transition: all 0.3s;
+    }
+
+    .contact-icon-placeholder:hover {
+        border-color: #0d6efd;
+        transform: scale(1.1);
+        background-color: #f8f9fa;
+    }
+
+    /* Style untuk SVG icon kontak */
+    .contact-icon {
+        width: 20px;
+        height: 20px;
+        color: #6c757d;
+        transition: all 0.3s;
+    }
+
+    .contact-icon-placeholder:hover .contact-icon {
+        color: #0d6efd;
+    }
+
+    /* Badge role styling */
+    .badge {
+        font-size: 0.8em;
+        padding: 0.4em 0.8em;
+    }
+
+    /* Table styling */
+    .table td {
+        vertical-align: middle;
+    }
+</style>
+ <div class="form-footer">
+            <p>&copy; 2025 Sistem Layanan Mandiri. All rights reserved.</p>
+        </div>
 @endpush

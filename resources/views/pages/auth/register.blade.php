@@ -60,7 +60,7 @@
         </div>
 
         <div class="form-footer">
-            <p>&copy; 2024 Sistem Layanan Mandiri. All rights reserved.</p>
+            <p>&copy; 2025 Sistem Layanan Mandiri. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -74,6 +74,11 @@
 
     body {
         display: flex;
+        background-image: url('https://images.pexels.com/photos/51159/letter-handwriting-family-letters-written-51159.jpeg');
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+
         justify-content: center;
         align-items: center;
         min-height: 100vh;

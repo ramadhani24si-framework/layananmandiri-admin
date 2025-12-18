@@ -43,7 +43,7 @@ class Media extends Model
     /**
      * Get URL untuk mengakses file
      */
-   
+
 
     /**
      * Cek apakah file ada di storage
@@ -90,15 +90,18 @@ class Media extends Model
     }
 
     public function getFileUrl()
-    {
-        // Tentukan path berdasarkan ref_table
-        if ($this->ref_table === 'jenis_surat') {
-            return Storage::disk('public')->url('media/jenis_surat/' . $this->file_name);
-        } elseif ($this->ref_table === 'pengajuans') {
-            return Storage::disk('public')->url('media/pengajuan/' . $this->file_name);
-        }
-
-        // Default
-        return Storage::disk('public')->url('media/' . $this->file_name);
+{
+    // Tentukan path berdasarkan ref_table
+    if ($this->ref_table === 'jenis_surat') {
+        $path = 'media/jenis_surat/' . $this->file_name;
+    } elseif ($this->ref_table === 'pengajuans') {
+        $path = 'media/pengajuan/' . $this->file_name;
+    } elseif ($this->ref_table === 'berkas_persyaratan') {
+        $path = 'media/berkas_persyaratan/' . $this->ref_id . '/' . $this->file_name;
+    } else {
+        $path = 'media/' . $this->file_name;
     }
+
+    return Storage::disk('public')->url($path);
+}
 }

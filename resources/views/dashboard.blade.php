@@ -10,7 +10,7 @@
             <div>
                 @if (isset($userRole))
                     <span
-                        class="badge bg-{{ $userRole == 'super_admin' ? 'danger' : ($userRole == 'admin' ? 'warning' : 'info') }}">
+                        class="badge bg-{{ $userRole == 'super_admin' ? 'danger' : ($userRole == 'warga' ? 'warning' : 'info') }}">
                         <i class="fas fa-user"></i> {{ ucfirst($userRole) }}
                     </span>
                 @endif
@@ -41,7 +41,7 @@
                                 </div>
                                 <p class="mt-2 mb-0 text-muted">
                                     <i class="fas fa-info-circle"></i>
-                                    @if (isset($userRole) && in_array($userRole, ['super_admin', 'admin']))
+                                    @if (isset($userRole) && in_array($userRole, ['super_admin', 'warga']))
                                         Anda memiliki akses penuh ke sistem administrasi.
                                     @else
                                         Anda dapat mengajukan surat dan melacak status pengajuan.
@@ -59,7 +59,7 @@
 
         <!-- Content Row - Statistik -->
         <div class="row">
-            @if (isset($userRole) && in_array($userRole, ['super_admin', 'admin']))
+            @if (isset($userRole) && in_array($userRole, ['super_admin', 'warga']))
                 <!-- Data untuk Admin/Super Admin -->
 
                 <!-- Total User (hanya admin) -->
@@ -72,7 +72,7 @@
                                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                             Total User</div>
                                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $userCount }}</div>
-                                        @if ($userRole == 'super_admin' || $userRole == 'admin')
+                                        @if ($userRole == 'super_admin' || $userRole == 'warga')
                                             <div class="mt-2">
                                                 <a href="{{ route('user.index') }}" class="btn btn-sm btn-primary">
                                                     <i class="fas fa-eye"></i> Lihat
@@ -99,7 +99,7 @@
                                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                             Total Warga</div>
                                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $wargaCount }}</div>
-                                        @if ($userRole == 'super_admin' || $userRole == 'admin')
+                                        @if ($userRole == 'super_admin' || $userRole == 'warga')
                                             <div class="mt-2">
                                                 <a href="{{ route('warga.index') }}" class="btn btn-sm btn-success">
                                                     <i class="fas fa-eye"></i> Lihat
@@ -135,6 +135,7 @@
                                     <div class="col-auto">
                                         <i class="fas fa-file-alt fa-2x text-gray-300"></i>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -331,8 +332,8 @@
                                 </a>
                             </div>
 
-                            <!-- Menu hanya untuk admin -->
-                            @if (isset($userRole) && in_array($userRole, ['super_admin', 'admin']))
+                            <!-- Menu hanya untuk warga -->
+                            @if (isset($userRole) && in_array($userRole, ['super_admin', 'warga']))
                                 <div class="col-md-3 mb-3">
                                     <a href="{{ route('user.index') }}" class="btn btn-dark btn-block">
                                         <i class="fas fa-users-cog"></i> Manajemen User
@@ -376,7 +377,7 @@
                                         <tr>
                                             <th>No</th>
                                             <th>Tanggal</th>
-                                            @if (isset($userRole) && in_array($userRole, ['super_admin', 'admin']))
+                                            @if (isset($userRole) && in_array($userRole, ['super_admin', 'warga']))
                                                 <th>Nama Warga</th>
                                             @endif
                                             <th>Jenis Surat</th>
@@ -390,7 +391,7 @@
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
                                                 <td>{{ $pengajuan->created_at->format('d/m/Y') }}</td>
-                                                @if (isset($userRole) && in_array($userRole, ['super_admin', 'admin']))
+                                                @if (isset($userRole) && in_array($userRole, ['super_admin', 'warga']))
                                                     <td>{{ $pengajuan->warga->nama ?? '-' }}</td>
                                                 @endif
                                                 <td>{{ $pengajuan->jenisSurat->nama ?? '-' }}</td>
@@ -435,5 +436,238 @@
                 </div>
             </div>
         @endif
+
+        <!-- Bagian Identitas Pengembang -->
+        <div class="row mt-5">
+            <div class="col-lg-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 bg-primary text-white">
+                        <h6 class="m-0 font-weight-bold">
+                            <i class="fas fa-code"></i> Pengembang Sistem
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row justify-content-center">
+                            <!-- Single Developer Profile -->
+                            <div class="col-lg-6 col-md-8">
+                                <div class="developer-profile text-center">
+                                    <div class="developer-photo mb-4">
+                                        <!-- GANTI DENGAN PATH FOTO ANDA -->
+                                        <img src="{{ asset('assets-admin/images/dedek.webp') }}"
+                                             alt="Foto Pengembang"
+                                             class="rounded-circle shadow-lg border border-4 border-white"
+                                             width="180"
+                                             height="180"
+                                             style="object-fit: cover;">
+                                    </div>
+
+                                    <h4 class="font-weight-bold text-primary mb-2">Suci Ramadhani</h4>
+
+                                    <div class="developer-info mb-4">
+                                        <div class="info-item mb-2">
+                                            <i class="fas fa-id-card text-muted me-2"></i>
+                                            <span class="text-dark">NIM: 2457301138</span>
+                                        </div>
+                                        <div class="info-item mb-3">
+                                            <i class="fas fa-graduation-cap text-muted me-2"></i>
+                                            <span class="text-dark">Program Studi: Sistem Informasi</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-university text-muted me-2"></i>
+                                            <span class="text-dark">Universitas: Politeknik Caltex Riau`</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="developer-skills mb-4">
+                                        <h6 class="font-weight-bold mb-3">Keahlian:</h6>
+                                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                                            <span class="badge bg-primary">Laravel</span>
+                                            <span class="badge bg-success">PHP</span>
+                                            <span class="badge bg-info">JavaScript</span>
+                                            <span class="badge bg-warning">Bootstrap</span>
+                                            <span class="badge bg-secondary">MySQL</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="developer-social mt-4">
+                                        <h6 class="font-weight-bold mb-3">Hubungi Saya:</h6>
+                                        <div class="d-flex justify-content-center gap-3">
+                                            <!-- LinkedIn -->
+                                            <a href="https://linkedin.com/in/username"
+                                               target="_blank"
+                                               class="social-link linkedin"
+                                               title="LinkedIn Profile">
+                                                <i class="fab fa-linkedin fa-2x"></i>
+                                            </a>
+                                            <!-- GitHub -->
+                                            <a href="https://github.com/username"
+                                               target="_blank"
+                                               class="social-link github"
+                                               title="GitHub Profile">
+                                                <i class="fab fa-github fa-2x"></i>
+                                            </a>
+                                            <!-- Instagram -->
+                                            <a href="https://instagram.com/username"
+                                               target="_blank"
+                                               class="social-link instagram"
+                                               title="Instagram Profile">
+                                                <i class="fab fa-instagram fa-2x"></i>
+                                            </a>
+                                            <!-- Email -->
+                                            <a href="mailto:email@example.com"
+                                               class="social-link email"
+                                               title="Email">
+                                                <i class="fas fa-envelope fa-2x"></i>
+                                            </a>
+                                            <!-- WhatsApp -->
+                                            <a href="https://wa.me/6281234567890"
+                                               target="_blank"
+                                               class="social-link whatsapp"
+                                               title="WhatsApp">
+                                                <i class="fab fa-whatsapp fa-2x"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Bagian Identitas Pengembang -->
+
+    </div>
+
+    <!-- Footer Copyright -->
+    <div class="form-footer mt-4">
+        <p class="text-center text-muted">
+            &copy; 2025 Sistem Layanan Mandiri. All rights reserved.
+        </p>
     </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Styling untuk developer profile */
+    .developer-profile {
+        padding: 30px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .developer-photo img {
+        transition: transform 0.3s ease;
+    }
+
+    .developer-photo img:hover {
+        transform: scale(1.05);
+    }
+
+    .developer-info .info-item {
+        background: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        display: inline-block;
+        min-width: 300px;
+        text-align: left;
+    }
+
+    .developer-skills .badge {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .developer-skills .badge:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+
+    /* Styling untuk link media sosial */
+    .social-link {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .social-link:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .social-link.linkedin {
+        background-color: #0077B5;
+        color: white;
+    }
+
+    .social-link.linkedin:hover {
+        background-color: #005582;
+    }
+
+    .social-link.github {
+        background-color: #333;
+        color: white;
+    }
+
+    .social-link.github:hover {
+        background-color: #222;
+    }
+
+    .social-link.instagram {
+        background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D);
+        color: white;
+    }
+
+    .social-link.email {
+        background-color: #DB4437;
+        color: white;
+    }
+
+    .social-link.email:hover {
+        background-color: #C23321;
+    }
+
+    .social-link.whatsapp {
+        background-color: #25D366;
+        color: white;
+    }
+
+    .social-link.whatsapp:hover {
+        background-color: #1DA851;
+    }
+
+    /* Styling untuk form footer */
+    .form-footer {
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+        margin-top: 30px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .developer-info .info-item {
+            min-width: 100%;
+        }
+
+        .social-link {
+            width: 45px;
+            height: 45px;
+        }
+
+        .developer-photo img {
+            width: 150px;
+            height: 150px;
+        }
+    }
+</style>
+@endpush

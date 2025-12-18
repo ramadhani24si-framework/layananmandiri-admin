@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage; // Tambahkan ini
 
 class User extends Authenticatable
 {
@@ -17,7 +18,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // TAMBAHKAN INI
+        'role',
+        'profile_picture', // TAMBAHKAN INI
     ];
 
     protected $hidden = [
@@ -37,31 +39,51 @@ class User extends Authenticatable
     public function scopeSearch($query, $keyword)
     {
         return $query->where('name', 'like', '%' . $keyword . '%')
-                     ->orWhere('email', 'like', '%' . $keyword . '%');
+                     ->orWhere('email', 'like', '%' . $keyword . '%')
+                     ->orWhere('role', 'like', '%' . $keyword . '%');
     }
 
-    // TAMBAHKAN METHOD UNTUK ROLE (BARU)
-    // Method untuk cek role
+    // ACCESSOR untuk foto profil (sederhana)
+    public function getProfilePictureUrlAttribute()
+    {
+        if ($this->profile_picture) {
+            return Storage::url($this->profile_picture);
+        }
+
+        // Default avatar jika tidak ada foto
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+    }
+
+    // TAMBAHKAN METHOD UNTUK ROLE
     public function hasRole($role)
     {
         return $this->role === $role;
     }
 
-    // Method untuk cek apakah admin
     public function isAdmin()
     {
         return $this->role === 'admin';
     }
 
-    // Method untuk cek apakah super admin
     public function isSuperAdmin()
     {
         return $this->role === 'super_admin';
     }
 
-    // Method untuk cek role dalam array
     public function hasAnyRole(array $roles)
     {
         return in_array($this->role, $roles);
+    }
+
+    // Method untuk mendapatkan role dalam format yang lebih baik
+    public function getFormattedRoleAttribute()
+    {
+        $roles = [
+            'admin' => 'Admin',
+            'super_admin' => 'Super Admin',
+            'user' => 'User',
+        ];
+
+        return $roles[$this->role] ?? 'User';
     }
 }
