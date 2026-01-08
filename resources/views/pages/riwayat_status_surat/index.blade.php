@@ -8,12 +8,12 @@
         <div class="col-md-6">
             <h2 class="mb-0">Riwayat Status Surat</h2>
         </div>
-        <div class="col-md-6 text-end">
+        {{-- <div class="col-md-6 text-end">
             <a href="{{ route('riwayat_status_surat.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Tambah Riwayat
             </a>
         </div>
-    </div>
+    </div> --}}
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -135,10 +135,10 @@
                                        class="btn btn-sm btn-info" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('riwayat_status_surat.edit', $item->riwayat_id) }}"
+                                    {{-- <a href="{{ route('riwayat_status_surat.edit', $item->riwayat_id) }}"
                                        class="btn btn-sm btn-warning" title="Edit">
                                         <i class="fas fa-edit"></i>
-                                    </a>
+                                    </a> --}}
                                     <form action="{{ route('riwayat_status_surat.destroy', $item->riwayat_id) }}"
                                           method="POST" class="d-inline">
                                         @csrf @method('DELETE')

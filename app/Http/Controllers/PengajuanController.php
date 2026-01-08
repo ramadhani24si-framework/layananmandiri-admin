@@ -1,15 +1,14 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Models\Pengajuan;
-use App\Models\Warga;
 use App\Models\JenisSurat;
 use App\Models\Media;
+use App\Models\Pengajuan;
+use App\Models\Warga;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class PengajuanController extends Controller
 {
@@ -42,14 +41,14 @@ class PengajuanController extends Controller
             $query->searchWithRelations($request->search);
         }
 
-        $pengajuan = $query->orderBy('created_at', 'desc')->paginate(10);
+        $pengajuan  = $query->orderBy('created_at', 'desc')->paginate(10);
         $jenisSurat = JenisSurat::all();
         $statusList = [
-            'draft' => 'Draft',
+            'draft'    => 'Draft',
             'diajukan' => 'Diajukan',
             'diproses' => 'Diproses',
-            'selesai' => 'Selesai',
-            'ditolak' => 'Ditolak',
+            'selesai'  => 'Selesai',
+            'ditolak'  => 'Ditolak',
         ];
 
         return view('pages.pengajuan.index', compact('pengajuan', 'jenisSurat', 'statusList'));
@@ -60,8 +59,8 @@ class PengajuanController extends Controller
      */
     public function create()
     {
-        $warga = Warga::orderBy('nama')->get();
-        $jenisSurat = JenisSurat::orderBy('nama_jenis')->get();
+        $warga           = Warga::orderBy('nama')->get();
+        $jenisSurat      = JenisSurat::orderBy('nama_jenis')->get();
         $nomorPermohonan = Pengajuan::generateNomorPermohonan();
 
         return view('pages.pengajuan.create', compact('warga', 'jenisSurat', 'nomorPermohonan'));
@@ -73,14 +72,14 @@ class PengajuanController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nomor_permohonan' => 'required|unique:pengajuans',
-            'warga_id' => 'required|exists:warga,warga_id',
-            'jenis_id' => 'required|exists:jenis_surat,jenis_id',
-            'tanggal_pengajuan' => 'required|date',
-            'status' => 'required|in:draft,diajukan,diproses,selesai,ditolak',
-            'catatan' => 'nullable|string',
-            'lampiran_files' => 'nullable|array',
-            'lampiran_files.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'nomor_permohonan'    => 'required|unique:pengajuans',
+            'warga_id'            => 'required|exists:warga,warga_id',
+            'jenis_id'            => 'required|exists:jenis_surat,jenis_id',
+            'tanggal_pengajuan'   => 'required|date',
+            'status'              => 'required|in:draft,diajukan,diproses,selesai,ditolak',
+            'catatan'             => 'nullable|string',
+            'lampiran_files'      => 'nullable|array',
+            'lampiran_files.*'    => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
             'lampiran_captions.*' => 'nullable|string|max:255',
         ]);
 
@@ -96,7 +95,7 @@ class PengajuanController extends Controller
                 'jenis_id',
                 'tanggal_pengajuan',
                 'status',
-                'catatan'
+                'catatan',
             ]));
 
             // ✅ UPLOAD LAMPIRAN FILES
@@ -104,7 +103,7 @@ class PengajuanController extends Controller
                 foreach ($request->file('lampiran_files') as $index => $file) {
                     if ($file->isValid()) {
                         $originalName = $file->getClientOriginalName();
-                        $fileName = time() . '_' . uniqid() . '_' . str_replace([' ', '.', '-'], '_', pathinfo($originalName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+                        $fileName     = time() . '_' . uniqid() . '_' . str_replace([' ', '.', '-'], '_', pathinfo($originalName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
 
                         // Simpan file ke storage
                         Storage::disk('public')->putFileAs(
@@ -153,18 +152,42 @@ class PengajuanController extends Controller
      */
     public function edit($id)
     {
-        $pengajuan = Pengajuan::with('lampiranFiles')->findOrFail($id);
-        $warga = Warga::orderBy('nama')->get();
+        $pengajuan  = Pengajuan::with('lampiranFiles')->findOrFail($id);
+        $warga      = Warga::orderBy('nama')->get();
         $jenisSurat = JenisSurat::orderBy('nama_jenis')->get();
         $statusList = [
-            'draft' => 'Draft',
+            'draft'    => 'Draft',
             'diajukan' => 'Diajukan',
             'diproses' => 'Diproses',
-            'selesai' => 'Selesai',
-            'ditolak' => 'Ditolak',
+            'selesai'  => 'Selesai',
+            'ditolak'  => 'Ditolak',
         ];
 
         return view('pages.pengajuan.edit', compact('pengajuan', 'warga', 'jenisSurat', 'statusList'));
+    }
+
+    // App\Http\Controllers\PengajuanController.php
+
+    /**
+     * Download file lampiran
+     */
+    public function downloadFile($id)
+    {
+        $media = Media::findOrFail($id);
+
+        // Validasi: pastikan file milik pengajuan yang sesuai
+        // Opsional: jika ingin membatasi akses
+        // if ($media->ref_table != 'pengajuans') {
+        //     abort(403, 'File tidak valid');
+        // }
+
+        $filePath = storage_path('app/public/media/pengajuan/' . $media->file_name);
+
+        if (! file_exists($filePath)) {
+            abort(404, 'File tidak ditemukan di server');
+        }
+
+        return response()->download($filePath, $media->caption ?? $media->file_name);
     }
 
     /**
@@ -175,14 +198,14 @@ class PengajuanController extends Controller
         $pengajuan = Pengajuan::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'nomor_permohonan' => 'required|unique:pengajuans,nomor_permohonan,' . $id . ',permohonan_id',
-            'warga_id' => 'required|exists:warga,warga_id',
-            'jenis_id' => 'required|exists:jenis_surat,jenis_id',
-            'tanggal_pengajuan' => 'required|date',
-            'status' => 'required|in:draft,diajukan,diproses,selesai,ditolak',
-            'catatan' => 'nullable|string',
-            'lampiran_files' => 'nullable|array',
-            'lampiran_files.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'nomor_permohonan'    => 'required|unique:pengajuans,nomor_permohonan,' . $id . ',permohonan_id',
+            'warga_id'            => 'required|exists:warga,warga_id',
+            'jenis_id'            => 'required|exists:jenis_surat,jenis_id',
+            'tanggal_pengajuan'   => 'required|date',
+            'status'              => 'required|in:draft,diajukan,diproses,selesai,ditolak',
+            'catatan'             => 'nullable|string',
+            'lampiran_files'      => 'nullable|array',
+            'lampiran_files.*'    => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
             'lampiran_captions.*' => 'nullable|string|max:255',
         ]);
 
@@ -201,7 +224,7 @@ class PengajuanController extends Controller
                 'jenis_id',
                 'tanggal_pengajuan',
                 'status',
-                'catatan'
+                'catatan',
             ]));
 
             // ✅ UPLOAD LAMPIRAN FILES BARU
@@ -213,7 +236,7 @@ class PengajuanController extends Controller
                 foreach ($request->file('lampiran_files') as $index => $file) {
                     if ($file->isValid()) {
                         $originalName = $file->getClientOriginalName();
-                        $fileName = time() . '_' . uniqid() . '_' . str_replace([' ', '.', '-'], '_', pathinfo($originalName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+                        $fileName     = time() . '_' . uniqid() . '_' . str_replace([' ', '.', '-'], '_', pathinfo($originalName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
 
                         // Simpan file
                         Storage::disk('public')->putFileAs(
@@ -290,7 +313,7 @@ class PengajuanController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:draft,diajukan,diproses,selesai,ditolak',
+            'status'     => 'required|in:draft,diajukan,diproses,selesai,ditolak',
             'keterangan' => 'nullable|string',
         ]);
 

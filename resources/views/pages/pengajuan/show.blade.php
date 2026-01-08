@@ -102,8 +102,10 @@
 
                 <!-- Syarat yang diperlukan -->
                 @php
-                    $syaratArray = $pengajuan->jenisSurat->syarat_json;
-                    $syaratCount = is_array($syaratArray) ? count($syaratArray) : 0;
+                    $syaratArray = is_string($pengajuan->jenisSurat->syarat_json)
+                        ? json_decode($pengajuan->jenisSurat->syarat_json, true) ?? []
+                        : $pengajuan->jenisSurat->syarat_json ?? [];
+                    $syaratCount = count($syaratArray);
                 @endphp
 
                 @if($syaratCount > 0)
@@ -121,38 +123,75 @@
                 </div>
                 @endif
 
-                <!-- ✅ LAMPIRAN PENGAJUAN -->
+                <!-- ✅ LAMPIRAN PENGAJUAN - VERSI FIXED -->
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="fas fa-paperclip"></i> Lampiran Berkas
-                            <span class="badge bg-primary">{{ $pengajuan->lampiran_count }}</span>
+                            <span class="badge bg-primary">{{ $pengajuan->lampiranFiles->count() }}</span>
                         </h5>
                     </div>
                     <div class="card-body">
-                        @if($pengajuan->lampiran_count > 0)
+                        @if($pengajuan->lampiranFiles->count() > 0)
                         <div class="row">
                             @foreach($pengajuan->lampiranFiles as $media)
                             <div class="col-md-4 mb-3">
                                 <div class="card h-100 border">
                                     <div class="card-body text-center">
                                         <div class="mb-3">
-                                            <i class="{{ $media->getIcon() }} fa-3x text-primary"></i>
+                                            @php
+                                                $extension = strtolower(pathinfo($media->file_name, PATHINFO_EXTENSION));
+                                                $icons = [
+                                                    'pdf' => 'fas fa-file-pdf text-danger',
+                                                    'doc' => 'fas fa-file-word text-primary',
+                                                    'docx' => 'fas fa-file-word text-primary',
+                                                    'xls' => 'fas fa-file-excel text-success',
+                                                    'xlsx' => 'fas fa-file-excel text-success',
+                                                    'jpg' => 'fas fa-file-image text-info',
+                                                    'jpeg' => 'fas fa-file-image text-info',
+                                                    'png' => 'fas fa-file-image text-info',
+                                                    'txt' => 'fas fa-file-alt text-secondary',
+                                                ];
+                                                $icon = $icons[$extension] ?? 'fas fa-file text-secondary';
+                                            @endphp
+                                            <i class="{{ $icon }} fa-3x"></i>
                                         </div>
                                         <h6 class="card-title text-truncate" title="{{ $media->caption ?? $media->file_name }}">
                                             {{ $media->caption ?? $media->file_name }}
                                         </h6>
                                         <small class="text-muted d-block mb-2">{{ $media->mime_type }}</small>
 
+                                        @php
+                                            // Path file sesuai dengan controller Anda
+                                            $filePath = 'media/pengajuan/' . $media->file_name;
+                                            $fullPath = storage_path('app/public/' . $filePath);
+                                            $fileExists = file_exists($fullPath);
+                                        @endphp
+
+                                        <small class="text-muted d-block mb-2">
+                                            @if($fileExists)
+                                                {{ round(filesize($fullPath) / 1024, 2) }} KB
+                                            @else
+                                                File tidak ditemukan
+                                            @endif
+                                        </small>
+
                                         <div class="mt-2">
-                                            <a href="{{ $media->getFileUrl() }}"
-                                               target="_blank" class="btn btn-sm btn-info" title="Lihat">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ $media->getFileUrl() }}"
-                                               download class="btn btn-sm btn-success" title="Download">
-                                                <i class="fas fa-download"></i>
-                                            </a>
+                                            @if($fileExists)
+                                                <a href="{{ asset('storage/' . $filePath) }}"
+                                                   target="_blank"
+                                                   class="btn btn-sm btn-info"
+                                                   title="Lihat">
+                                                    <i class="fas fa-eye"></i> Lihat
+                                                </a>
+                                                <a href="{{ route('download.file', $media->media_id) }}"
+                                                   class="btn btn-sm btn-success"
+                                                   title="Download">
+                                                    <i class="fas fa-download"></i> Download
+                                                </a>
+                                            @else
+                                                <span class="badge bg-danger">File tidak ditemukan di storage</span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -214,12 +253,23 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
-                            <a href="#" class="btn btn-outline-primary">
+                            @if($pengajuan->lampiranFiles->count() > 0)
+                                @if($pengajuan->lampiranFiles->count() == 1)
+                                    <a href="{{ route('download.file', $pengajuan->lampiranFiles->first()->media_id) }}"
+                                       class="btn btn-outline-primary">
+                                        <i class="fas fa-download"></i> Download Lampiran
+                                    </a>
+                                @else
+                                    <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#downloadAllModal">
+                                        <i class="fas fa-file-archive"></i> Download Semua Lampiran
+                                    </a>
+                                @endif
+                            @endif
+
+                            <a href="#" class="btn btn-outline-success">
                                 <i class="fas fa-print"></i> Cetak Surat
                             </a>
-                            <a href="#" class="btn btn-outline-success">
-                                <i class="fas fa-download"></i> Unduh Berkas
-                            </a>
+
                             <form action="{{ route('pengajuan.destroy', $pengajuan->permohonan_id) }}" method="POST"
                                 class="d-grid">
                                 @csrf
@@ -250,16 +300,11 @@
                         <div class="mb-3">
                             <label for="status" class="form-label">Status Baru</label>
                             <select class="form-select" id="status" name="status" required>
-                                <option value="draft" {{ $pengajuan->status == 'draft' ? 'selected' : '' }}>Draft
-                                </option>
-                                <option value="diajukan" {{ $pengajuan->status == 'diajukan' ? 'selected' : '' }}>Diajukan
-                                </option>
-                                <option value="diproses" {{ $pengajuan->status == 'diproses' ? 'selected' : '' }}>Diproses
-                                </option>
-                                <option value="selesai" {{ $pengajuan->status == 'selesai' ? 'selected' : '' }}>Selesai
-                                </option>
-                                <option value="ditolak" {{ $pengajuan->status == 'ditolak' ? 'selected' : '' }}>Ditolak
-                                </option>
+                                <option value="draft" {{ $pengajuan->status == 'draft' ? 'selected' : '' }}>Draft</option>
+                                <option value="diajukan" {{ $pengajuan->status == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
+                                <option value="diproses" {{ $pengajuan->status == 'diproses' ? 'selected' : '' }}>Diproses</option>
+                                <option value="selesai" {{ $pengajuan->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                <option value="ditolak" {{ $pengajuan->status == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -273,6 +318,33 @@
                         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Download All -->
+    <div class="modal fade" id="downloadAllModal" tabindex="-1" aria-labelledby="downloadAllModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="downloadAllModalLabel">Download Semua Lampiran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Pilih format download:</p>
+                    <div class="list-group">
+                        @foreach($pengajuan->lampiranFiles as $media)
+                            <a href="{{ route('download.file', $media->media_id) }}"
+                               class="list-group-item list-group-item-action"
+                               target="_blank">
+                               <i class="fas fa-file me-2"></i> {{ $media->caption ?? $media->file_name }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -315,9 +387,34 @@
                 height: calc(100% - 20px);
                 background-color: #dee2e6;
             }
+
+            .text-danger { color: #dc3545 !important; }
+            .text-primary { color: #0d6efd !important; }
+            .text-success { color: #198754 !important; }
+            .text-info { color: #0dcaf0 !important; }
+            .text-secondary { color: #6c757d !important; }
         </style>
     @endpush
-     <div class="form-footer">
-            <p>&copy; 2025 Sistem Layanan Mandiri. All rights reserved.</p>
-        </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Debug: Tampilkan info file di console
+            @foreach($pengajuan->lampiranFiles as $media)
+                @php
+                    $path = 'media/pengajuan/' . $media->file_name;
+                    $exists = file_exists(storage_path('app/public/' . $path));
+                @endphp
+                console.log('File: {{ $media->file_name }}');
+                console.log('URL: {{ asset("storage/" . $path) }}');
+                console.log('Exists: {{ $exists ? "Ya" : "Tidak" }}');
+                console.log('---');
+            @endforeach
+        });
+    </script>
+    @endpush
+
+    <div class="form-footer">
+        <p>&copy; 2025 Sistem Layanan Mandiri. All rights reserved.</p>
+    </div>
 @endsection

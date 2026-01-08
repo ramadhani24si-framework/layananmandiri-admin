@@ -112,9 +112,20 @@ class RiwayatStatusSuratController extends Controller
      */
     public function show($id)
     {
-        $riwayat = RiwayatStatusSurat::with(['pengajuan', 'petugas'])->findOrFail($id);
+        try {
+            $riwayat = RiwayatStatusSurat::with([
+                'pengajuan.warga',      // Relasi nested: pengajuan -> warga
+                'pengajuan.jenisSurat', // Relasi nested: pengajuan -> jenisSurat
+                'petugas',              // Relasi langsung ke petugas (warga)
+            ])->findOrFail($id);
 
-        return view('pages.riwayat_status_surat.show', compact('riwayat'));
+            return view('pages.riwayat_status_surat.show', compact('riwayat'));
+
+        } catch (\Exception $e) {
+            // Jika tidak ditemukan, redirect ke index dengan pesan error
+            return redirect()->route('riwayat_status_surat.index')
+                ->with('error', 'Riwayat status tidak ditemukan: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -181,46 +192,26 @@ class RiwayatStatusSuratController extends Controller
             return back()->withInput()->with('error', 'Gagal memperbarui riwayat: ' . $e->getMessage());
         }
     }
+// Pada method destroy(), perbaiki route redirect
+public function destroy($id)
+{
+    $riwayat = RiwayatStatusSurat::findOrFail($id);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        $riwayat = RiwayatStatusSurat::findOrFail($id);
+    DB::beginTransaction();
+    try {
+        // ... kode yang sudah ada ...
 
-        DB::beginTransaction();
-        try {
-            // Cek apakah ini riwayat terakhir untuk pengajuan ini
-            $lastRiwayat = RiwayatStatusSurat::where('permohonan_id', $riwayat->permohonan_id)
-                ->orderBy('waktu', 'desc')
-                ->first();
+        DB::commit();
 
-            // Jika ini riwayat terakhir, update status pengajuan ke sebelumnya
-            if ($lastRiwayat && $lastRiwayat->riwayat_id == $riwayat->riwayat_id) {
-                $previousRiwayat = RiwayatStatusSurat::where('permohonan_id', $riwayat->permohonan_id)
-                    ->where('riwayat_id', '!=', $riwayat->riwayat_id)
-                    ->orderBy('waktu', 'desc')
-                    ->first();
+        // PERBAIKI INI: Route name harus konsisten
+        return redirect()->route('riwayat_status_surat.index')  // BUKAN 'riwayat-status-surat.index'
+            ->with('success', 'Riwayat status berhasil dihapus.');
 
-                if ($previousRiwayat) {
-                    $pengajuan = Pengajuan::find($riwayat->permohonan_id);
-                    $pengajuan->update(['status' => $previousRiwayat->status]);
-                }
-            }
-
-            $riwayat->delete();
-
-            DB::commit();
-
-            return redirect()->route('riwayat-status-surat.index')
-                ->with('success', 'Riwayat status berhasil dihapus.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Gagal menghapus riwayat: ' . $e->getMessage());
-        }
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Gagal menghapus riwayat: ' . $e->getMessage());
     }
+}
 
     /**
      * Get riwayat by pengajuan (AJAX)

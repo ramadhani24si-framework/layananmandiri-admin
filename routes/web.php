@@ -42,6 +42,8 @@ Route::middleware('check.login')->group(function () {
     // ✅ TAMBAHKAN INI: Route untuk update status
     Route::post('/pengajuan/{id}/update-status', [PengajuanController::class, 'updateStatus'])
         ->name('pengajuan.update-status');
+    Route::get('/download/file/{id}', [PengajuanController::class, 'downloadFile'])->name('download.file');
+
 
     // ==================== ROUTES UNTUK ADMIN & SUPER ADMIN ====================
     Route::middleware(['check.role:warga,super_admin'])->group(function () {
@@ -63,6 +65,8 @@ Route::middleware('check.login')->group(function () {
         // RIWAYAT STATUS CREATE/EDIT/DELETE hanya untuk admin
         Route::get('/riwayat-status-surat/create', [RiwayatStatusSuratController::class, 'create'])
             ->name('riwayat_status_surat.create');
+        Route::get('/riwayat-status-surat/{id}', [RiwayatStatusSuratController::class, 'show'])
+            ->name('riwayat_status_surat.show');
         Route::post('/riwayat-status-surat', [RiwayatStatusSuratController::class, 'store'])
             ->name('riwayat_status_surat.store');
         Route::get('/riwayat-status-surat/{id}/edit', [RiwayatStatusSuratController::class, 'edit'])
@@ -123,3 +127,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile/picture', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Di routes/web.php
+Route::get('/download/template/{id}', [JenisSuratController::class, 'downloadTemplate'])->name('download.template');

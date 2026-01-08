@@ -135,6 +135,30 @@ class JenisSuratController extends Controller
         }
     }
 
+    // Tambahkan method ini di JenisSuratController
+public function downloadTemplate($id)
+{
+    try {
+        $media = Media::findOrFail($id);
+
+        // Validasi: pastikan file milik jenis_surat
+        if ($media->ref_table != 'jenis_surat') {
+            abort(403, 'File tidak valid');
+        }
+
+        $filePath = storage_path('app/public/media/jenis_surat/' . $media->file_name);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File template tidak ditemukan di server');
+        }
+
+        return response()->download($filePath, $media->caption ?? $media->file_name);
+
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Gagal mendownload file: ' . $e->getMessage());
+    }
+}
+
     /**
      * Display the specified resource.
      */
