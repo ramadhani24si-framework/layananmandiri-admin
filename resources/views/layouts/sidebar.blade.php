@@ -24,9 +24,9 @@
 }
 
 .sidebar-logo {
-    width: 300px;          /* BESAR tapi tetap rapi */
+    width: 200px;          /* BESAR tapi tetap rapi */
     height: auto;         /* jaga proporsi */
-    max-width: 100%;
+    max-width: 50%;
     object-fit: contain;
 }
 
@@ -74,7 +74,7 @@
     @auth
         {{-- LOGO --}}
        <div class="sidebar-header">
-    <img src="{{ asset('assets-admin/images/logo.png') }}"
+    <img src="{{ asset('assets-admin/images/logofiks.png') }}"
          alt="Logo Kota Pekanbaru"
          class="sidebar-logo">
 </div>
